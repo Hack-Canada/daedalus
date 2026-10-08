@@ -5,6 +5,7 @@ import {
   integer,
   jsonb,
   pgTable,
+  primaryKey,
   text,
   timestamp,
   unique,
@@ -17,7 +18,7 @@ export const users = pgTable("user", {
     .$defaultFn(() => crypto.randomUUID()),
   name: text("name").notNull(),
   image: text("image"),
-  email: text("email").notNull(),
+  email: text("email").notNull().unique(),
   emailVerified: timestamp("emailVerified"),
   password: text("password"),
   role: text("role").default("unassigned").notNull(),
@@ -42,9 +43,7 @@ export const passwordResetTokens = pgTable("passwordResetToken", {
   createdAt: timestamp("createdAt")
     .notNull()
     .default(sql`CURRENT_TIMESTAMP`),
-  userId: text("userId")
-    .notNull()
-    .references(() => users.id),
+  userId: text("userId").notNull(),
 });
 
 export const accounts = pgTable(
@@ -64,9 +63,9 @@ export const accounts = pgTable(
     id_token: text("id_token"),
     session_state: text("session_state"),
   },
-  (account) => ({
-    compoundKey: sql`CONCAT(${account.provider}, ${account.providerAccountId})`,
-  }),
+  (account) => [
+    primaryKey({ columns: [account.provider, account.providerAccountId] }),
+  ],
 );
 
 export const profiles = pgTable("profile", {
@@ -119,24 +118,36 @@ export const sessions = pgTable("session", {
   expires: timestamp("expires").notNull(),
 });
 
-export const verificationTokens = pgTable("verificationToken", {
-  identifier: text("identifier").notNull(),
-  token: text("token").notNull(),
-  expires: timestamp("expires").notNull(),
-});
+export const verificationTokens = pgTable(
+  "verificationToken",
+  {
+    identifier: text("identifier").notNull(),
+    token: text("token").notNull(),
+    expires: timestamp("expires").notNull(),
+  },
+  (verificationToken) => [
+    primaryKey({
+      columns: [verificationToken.identifier, verificationToken.token],
+    }),
+  ],
+);
 
-export const authenticators = pgTable("authenticator", {
-  credentialID: text("credentialID").notNull(),
-  userId: text("userId")
-    .notNull()
-    .references(() => users.id, { onDelete: "cascade" }),
-  providerAccountId: text("providerAccountId").notNull(),
-  credentialPublicKey: text("credentialPublicKey").notNull(),
-  counter: integer("counter").notNull(),
-  credentialDeviceType: text("credentialDeviceType").notNull(),
-  credentialBackedUp: boolean("credentialBackedUp").notNull(),
-  transports: text("transports"),
-});
+export const authenticators = pgTable(
+  "authenticator",
+  {
+    credentialID: text("credentialID").notNull(),
+    userId: text("userId")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    providerAccountId: text("providerAccountId").notNull(),
+    credentialPublicKey: text("credentialPublicKey").notNull(),
+    counter: integer("counter").notNull(),
+    credentialDeviceType: text("credentialDeviceType").notNull(),
+    credentialBackedUp: boolean("credentialBackedUp").notNull(),
+    transports: text("transports"),
+  },
+  (authenticator) => [primaryKey({ columns: [authenticator.credentialID] })],
+);
 
 export const emailVerificationTokens = pgTable("emailVerificationToken", {
   id: text("id")
@@ -197,6 +208,7 @@ export const hackerApplications = pgTable("hackerApplication", {
   averageRating: integer("averageRating"),
   normalizedAvgRating: integer("normalizedAvgRating"),
   lastNormalizedAt: timestamp("lastNormalizedAt"),
+  isTeam: boolean("isTeam").notNull().default(false),
 });
 
 export const applicationReviews = pgTable("applicationReview", {
@@ -259,9 +271,7 @@ export const auditLogs = pgTable("auditLog", {
   id: text("id")
     .primaryKey()
     .$defaultFn(() => crypto.randomUUID()),
-  userId: text("userId")
-    .notNull()
-    .references(() => users.id),
+  userId: text("userId").notNull(),
   action: text("action").notNull(),
   entityType: text("entityType").notNull(),
   entityId: text("entityId").notNull(),
@@ -405,9 +415,9 @@ export const emailCampaigns = pgTable("emailCampaign", {
   id: text("id")
     .primaryKey()
     .$defaultFn(() => crypto.randomUUID()),
-  name: text("name").notNull(),
+  name: text("name").default(""),
   subject: text("subject").notNull(),
-  body: text("body").notNull(),
+  body: text("body"),
   status: text("status").notNull().default("draft"),
   sentAt: timestamp("sentAt"),
   createdAt: timestamp("createdAt")
@@ -416,6 +426,20 @@ export const emailCampaigns = pgTable("emailCampaign", {
   updatedAt: timestamp("updatedAt")
     .notNull()
     .default(sql`CURRENT_TIMESTAMP`),
+  audienceFilter: text("audienceFilter").notNull().default("all"),
+  totalRecipients: integer("totalRecipients").notNull().default(0),
+  sentCount: integer("sentCount").notNull().default(0),
+  failedCount: integer("failedCount").notNull().default(0),
+  createdById: text("createdById")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  approvedById: text("approvedById").references(() => users.id, {
+    onDelete: "set null",
+  }),
+  approvedAt: timestamp("approvedAt"),
+  completedAt: timestamp("completedAt"),
+  templateId: text("templateId").notNull().default("default"),
+  customHtml: text("customHtml"),
 });
 
 export type EmailCampaign = typeof emailCampaigns.$inferSelect;
@@ -431,14 +455,17 @@ export const emailCampaignRecipients = pgTable("emailCampaignRecipient", {
   email: text("email").notNull(),
   name: text("name"),
   error: text("error"),
-  createdAt: timestamp("createdAt")
-    .notNull()
-    .default(sql`CURRENT_TIMESTAMP`),
   sentAt: timestamp("sentAt"),
+  userId: text("userId")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  status: text("status").notNull().default("pending"),
 });
 
-export type EmailCampaignRecipient = typeof emailCampaignRecipients.$inferSelect;
-export type NewEmailCampaignRecipient = typeof emailCampaignRecipients.$inferInsert;
+export type EmailCampaignRecipient =
+  typeof emailCampaignRecipients.$inferSelect;
+export type NewEmailCampaignRecipient =
+  typeof emailCampaignRecipients.$inferInsert;
 
 export const shopItems = pgTable("shopItem", {
   id: text("id")
@@ -449,6 +476,18 @@ export const shopItems = pgTable("shopItem", {
   itemDescription: text("itemDescription"),
   purchasePrice: integer("purchasePrice").notNull(),
   stock: integer("stock"),
+  name: text("name").notNull().default(""),
+  description: text("description"),
+  imageUrl: text("imageUrl"),
+  pointsCost: integer("pointsCost").notNull().default(0),
+  maxPerUser: integer("maxPerUser").default(1),
+  enabled: boolean("enabled").notNull().default(true),
+  createdAt: timestamp("createdAt")
+    .notNull()
+    .default(sql`CURRENT_TIMESTAMP`),
+  updatedAt: timestamp("updatedAt")
+    .notNull()
+    .default(sql`CURRENT_TIMESTAMP`),
 });
 
 export type ShopItem = typeof shopItems.$inferSelect;

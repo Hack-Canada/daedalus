@@ -191,11 +191,11 @@ export default function SubmissionSuccess() {
           className="relative"
         >
           <Image
-            src="/beaver-wave.webp"
-            alt="Beaver waving"
-            width={180}
-            height={180}
-            className="drop-shadow-xl"
+            src="/logo-circle.png"
+            alt="Hack Canada"
+            width={140}
+            height={140}
+            className="rounded-full drop-shadow-xl"
           />
         </motion.div>
 
@@ -295,7 +295,7 @@ export default function SubmissionSuccess() {
 
           <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.98 }}>
             <Link
-              href="/applications/hacker/review"
+              href="/apply"
               className="flex w-full items-center justify-center gap-2 rounded-full border border-white/20 bg-white/5 px-6 py-3 font-medium text-white/80 transition-all duration-300 hover:border-primary/50 hover:bg-white/10 hover:text-primary hover:shadow-[0_0_15px_rgba(30,144,255,0.2)] sm:w-auto sm:px-8 sm:py-4"
             >
               <ExternalLink className="size-5" />

@@ -12,7 +12,7 @@ interface FieldProps {
 function getUrlType(url: string) {
   if (url.includes("github.com")) return "github";
   if (url.includes("linkedin.com")) return "linkedin";
-  if (url.includes("s3.amazonaws.com")) return "resume";
+  if (url.includes("/api/resume") || url.includes("s3.amazonaws.com")) return "resume";
   return "website";
 }
 
@@ -32,7 +32,7 @@ function getIcon(type: string) {
 export function Field({ label, value, customValue, isLongText }: FieldProps) {
   const isEmpty = typeof value === "string" ? value.trim() === "" : !value;
   const strValue = customValue ? customValue : value?.toString() || "";
-  const isUrl = strValue.startsWith("http");
+  const isUrl = strValue.startsWith("http") || strValue.startsWith("/api/resume");
 
   // Auto-detect long text (more than 100 chars or contains newlines)
   const isLong =

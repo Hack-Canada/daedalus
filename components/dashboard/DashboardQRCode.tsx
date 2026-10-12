@@ -2,6 +2,8 @@ import Image from "next/image";
 import { QrCode, ScanQrCode } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 
+import { QR_LOGO_SRC } from "@/config/qr-code";
+
 import { Button } from "../ui/button";
 import {
   Dialog,
@@ -83,7 +85,7 @@ const DashboardQRCode = ({ isLocked, userId }: DashboardQRCodeProps) => {
                   size={225}
                   level="H"
                   imageSettings={{
-                    src: "/beaver-wave.webp",
+                    src: QR_LOGO_SRC,
                     height: 50,
                     width: 50,
                     excavate: true,

@@ -45,6 +45,9 @@ export const SCANNER_CONFIG: ScannerConfig = {
   defaultZoomValueIfSupported: 2,
 };
 
+// Raw <img>/canvas loads skip next/image, so ask its optimizer for a 128px copy (the source PNG is ~1 MB).
+export const QR_LOGO_SRC = "/_next/image?url=%2Flogo-circle.png&w=128&q=75";
+
 export const CONTAINER_STYLES = {
   success: "rgba(76, 175, 80, 0.2)",
   error: "rgba(244, 67, 54, 0.2)",

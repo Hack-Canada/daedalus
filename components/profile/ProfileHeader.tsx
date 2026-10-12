@@ -20,11 +20,11 @@ export function ProfileHeader({
   return (
     <div className="group relative overflow-hidden rounded-xl border border-primary/20 bg-backgroundMuted p-6 transition-all duration-300 hover:border-primary/40 hover:shadow-xl hover:shadow-primary/5 md:p-8">
       <Image
-        src="/beaver-wave.webp"
-        alt="Beaver wave"
-        width={200}
-        height={200}
-        className="pointer-events-none absolute right-5 object-contain opacity-60 max-3xl:top-8 max-sm:w-32 sm:right-10 3xl:bottom-0 3xl:h-full 3xl:w-full 3xl:max-w-64"
+        src="/logo-circle.png"
+        alt=""
+        width={128}
+        height={128}
+        className="pointer-events-none absolute -right-6 -bottom-6 size-28 rotate-12 rounded-full opacity-20 sm:size-32"
       />
 
       <div className="pointer-events-none absolute inset-0 -z-10">

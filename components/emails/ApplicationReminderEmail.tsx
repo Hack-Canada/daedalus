@@ -155,7 +155,7 @@ const ApplicationReminderEmail = ({
 
               <div style={{ textAlign: "center", margin: "0 0 28px 0" }}>
                 <Button
-                  href="https://app.hackcanada.org/applications/hacker"
+                  href="https://app.hackcanada.org/apply"
                   style={{
                     backgroundColor: "#5B21B6",
                     color: "#FFFFFF",

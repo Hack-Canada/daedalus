@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/auth";
 import { QRCodeSVG } from "qrcode.react";
 
+import { QR_LOGO_SRC } from "@/config/qr-code";
 import { cn } from "@/lib/utils";
 import { BackButton } from "@/components/ui/back-button";
 import { EmptyPage } from "@/components/EmptyPage";
@@ -97,7 +98,7 @@ export default async function QRCodePage() {
                       size={225}
                       level="H"
                       imageSettings={{
-                        src: "/beaver-wave.webp",
+                        src: QR_LOGO_SRC,
                         height: 60,
                         width: 60,
                         excavate: true,

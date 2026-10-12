@@ -2,7 +2,8 @@ import React from "react";
 import Link from "next/link";
 import { Check } from "lucide-react";
 
-import { Application } from "@/config/applications";
+import { type Application } from "@/config/applications";
+import { type HackathonPhase } from "@/config/phases";
 import { cn } from "@/lib/utils";
 
 import { ApplicationCardHeader } from "./ApplicationCardHeader";
@@ -11,11 +12,13 @@ import { ApplicationCardStatus } from "./ApplicationCardStatus";
 interface ApplicationCardProps {
   application: Application;
   alreadyApplied: boolean;
+  phase: HackathonPhase;
 }
 
 export const ApplicationCard = ({
   application,
   alreadyApplied = false,
+  phase,
 }: ApplicationCardProps) => {
   const {
     title,
@@ -32,13 +35,13 @@ export const ApplicationCard = ({
   return (
     <div
       className={cn(
-        "group relative block overflow-hidden rounded-xl border border-white/10 bg-white/5 p-6 backdrop-blur-sm transition-all duration-500 hover:-translate-y-1 hover:border-primary/40 hover:shadow-[0_0_30px_rgba(30,144,255,0.15)]",
+        "group hover:border-primary/40 relative block overflow-hidden rounded-xl border border-white/10 bg-white/5 p-6 backdrop-blur-sm transition-all duration-500 hover:-translate-y-1 hover:shadow-[0_0_30px_rgba(30,144,255,0.15)]",
         disabled && "opacity-60",
-        alreadyApplied && "cursor-default border-primary/50",
+        alreadyApplied && "border-primary/50 cursor-default",
       )}
     >
       {/* Gradient overlay */}
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent opacity-50 transition-opacity duration-500 group-hover:opacity-75" />
+      <div className="from-primary/5 pointer-events-none absolute inset-0 bg-gradient-to-br via-transparent to-transparent opacity-50 transition-opacity duration-500 group-hover:opacity-75" />
 
       {!alreadyApplied && (
         <Link
@@ -52,7 +55,7 @@ export const ApplicationCard = ({
         />
       )}
       {alreadyApplied && (
-        <div className="pointer-events-none absolute -right-2 -top-2 z-20 rounded-full border border-primary/30 bg-primary/20 px-2 py-1 text-xs font-medium text-primary">
+        <div className="border-primary/30 bg-primary/20 text-primary pointer-events-none absolute -top-2 -right-2 z-20 rounded-full border px-2 py-1 text-xs font-medium">
           Applied
         </div>
       )}
@@ -63,7 +66,7 @@ export const ApplicationCard = ({
               {title}
               {alreadyApplied && (
                 <Check
-                  className="size-4 text-primary md:size-5"
+                  className="text-primary size-4 md:size-5"
                   strokeWidth={3}
                 />
               )}
@@ -73,14 +76,18 @@ export const ApplicationCard = ({
           icon={Icon}
         />
 
-        <ApplicationCardStatus status={status} deadline={deadline} />
+        <ApplicationCardStatus
+          status={status}
+          deadline={deadline}
+          phase={phase}
+        />
       </div>
 
       {alreadyApplied && (
-        <div className="relative z-30 mt-4 max-xs:w-full">
+        <div className="max-xs:w-full relative z-30 mt-4">
           <Link
-            href="/applications/hacker/review"
-            className="pointer-events-auto inline-flex cursor-pointer items-center gap-2 rounded-md border border-primary/30 bg-primary/10 px-4 py-2 text-sm font-medium text-primary transition-all hover:border-primary/50 hover:bg-primary/20 max-xs:w-full max-xs:justify-center"
+            href="/apply"
+            className="border-primary/30 bg-primary/10 text-primary hover:border-primary/50 hover:bg-primary/20 max-xs:w-full max-xs:justify-center pointer-events-auto inline-flex cursor-pointer items-center gap-2 rounded-md border px-4 py-2 text-sm font-medium transition-all"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"

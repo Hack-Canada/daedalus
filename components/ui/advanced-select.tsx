@@ -19,6 +19,9 @@ interface AdvancedSelectProps {
   isSearchable?: boolean;
   disabled?: boolean;
   className?: string;
+  id?: string;
+  "aria-invalid"?: boolean;
+  "aria-describedby"?: string;
 }
 
 export function AdvancedSelect({
@@ -30,10 +33,16 @@ export function AdvancedSelect({
   isSearchable = true,
   disabled = false,
   className,
+  id,
+  "aria-invalid": ariaInvalid,
+  "aria-describedby": ariaDescribedBy,
 }: AdvancedSelectProps) {
   return (
     <AsyncSelect
       name={name}
+      inputId={id}
+      aria-invalid={ariaInvalid}
+      aria-describedby={ariaDescribedBy}
       value={value}
       onChange={(selected: SingleValue<Option>) =>
         onChange(selected?.value || "")

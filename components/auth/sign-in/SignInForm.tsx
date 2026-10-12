@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
+import { safeCallbackUrl } from "@/lib/apply/callback";
 import { AUTH_ERROR_MESSAGES } from "@/lib/auth-errors";
 import { fetcher } from "@/lib/utils";
 import { LoginSchema } from "@/lib/validations/login";
@@ -30,14 +31,19 @@ const SignInForm = ({}: Props) => {
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
   const authError = searchParams.get("error");
+  const callbackUrl = safeCallbackUrl(searchParams.get("callbackUrl"));
 
   useEffect(() => {
     if (!authError) return;
 
     toast.error(AUTH_ERROR_MESSAGES[authError] ?? AUTH_ERROR_MESSAGES.default);
 
-    router.replace("/sign-in");
-  }, [authError, router]);
+    const next =
+      callbackUrl === "/"
+        ? "/sign-in"
+        : `/sign-in?callbackUrl=${encodeURIComponent(callbackUrl)}`;
+    router.replace(next);
+  }, [authError, callbackUrl, router]);
 
   const form = useForm({
     resolver: zodResolver(LoginSchema),
@@ -60,7 +66,7 @@ const SignInForm = ({}: Props) => {
           toast.info(res.message);
           router.push(res.data.redirect);
         } else if (res.success) {
-          window.location.href = "/";
+          window.location.href = callbackUrl;
         } else {
           toast.error(res.message);
           setError(res.message);
@@ -74,7 +80,10 @@ const SignInForm = ({}: Props) => {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-5">
+      <form
+        onSubmit={form.handleSubmit(onSubmit)}
+        className="flex flex-col gap-5"
+      >
         {error && (
           <div className="border-error/50 bg-error/10 rounded-md border p-2">
             <p className="text-error text-sm">{error}</p>
@@ -86,13 +95,15 @@ const SignInForm = ({}: Props) => {
           name="email"
           render={({ field }) => (
             <FormItem className="space-y-2">
-              <FormLabel className="text-white/90 font-medium">Email Address</FormLabel>
+              <FormLabel className="font-medium text-white/90">
+                Email Address
+              </FormLabel>
               <FormControl>
                 <Input
                   {...field}
                   autoFocus={true}
                   placeholder="you@example.com"
-                  className="flex h-11 w-full rounded-lg border border-white/30 bg-white/10 px-4 py-2.5 lowercase shadow-lg shadow-black/20 backdrop-blur-md text-white placeholder:text-white/40 placeholder:capitalize file:font-medium focus-visible:ring-2 focus-visible:ring-white/50 focus-visible:border-white/50 focus-visible:outline-hidden disabled:cursor-not-allowed disabled:opacity-50 transition-all"
+                  className="flex h-11 w-full rounded-lg border border-white/30 bg-white/10 px-4 py-2.5 text-white lowercase shadow-lg shadow-black/20 backdrop-blur-md transition-all file:font-medium placeholder:text-white/40 placeholder:capitalize focus-visible:border-white/50 focus-visible:ring-2 focus-visible:ring-white/50 focus-visible:outline-hidden disabled:cursor-not-allowed disabled:opacity-50"
                 />
               </FormControl>
               <FormMessage className="text-red-300" />
@@ -105,13 +116,15 @@ const SignInForm = ({}: Props) => {
           name="password"
           render={({ field }) => (
             <FormItem className="space-y-2">
-              <FormLabel className="text-white/90 font-medium">Password</FormLabel>
+              <FormLabel className="font-medium text-white/90">
+                Password
+              </FormLabel>
               <FormControl>
                 <Input
                   {...field}
                   type="password"
                   placeholder="Enter your password"
-                  className="flex h-11 w-full rounded-lg border border-white/30 bg-white/10 px-4 py-2.5 shadow-lg shadow-black/20 backdrop-blur-md text-white placeholder:text-white/40 file:font-medium focus-visible:ring-2 focus-visible:ring-white/50 focus-visible:border-white/50 focus-visible:outline-hidden disabled:cursor-not-allowed disabled:opacity-50 transition-all"
+                  className="flex h-11 w-full rounded-lg border border-white/30 bg-white/10 px-4 py-2.5 text-white shadow-lg shadow-black/20 backdrop-blur-md transition-all file:font-medium placeholder:text-white/40 focus-visible:border-white/50 focus-visible:ring-2 focus-visible:ring-white/50 focus-visible:outline-hidden disabled:cursor-not-allowed disabled:opacity-50"
                 />
               </FormControl>
               <FormMessage className="text-red-300" />
@@ -128,14 +141,14 @@ const SignInForm = ({}: Props) => {
           {isPending ? "Signing In..." : "Login"}
         </Button>
       </form>
-      
+
       <div className="relative flex items-center gap-3 py-1">
-        <div className="flex-1 h-px bg-white/20" />
+        <div className="h-px flex-1 bg-white/20" />
         <span className="shrink-0 text-sm text-white/50">or</span>
-        <div className="flex-1 h-px bg-white/20" />
+        <div className="h-px flex-1 bg-white/20" />
       </div>
-      
-      <OAuthButtons callbackUrl="/" />
+
+      <OAuthButtons mode="sign-in" callbackUrl={callbackUrl} />
     </Form>
   );
 };

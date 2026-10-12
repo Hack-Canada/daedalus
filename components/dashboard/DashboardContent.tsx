@@ -1,7 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { isPhaseActive } from "@/config/phases";
+import { useHackathonPhase } from "@/hooks/useHackathonPhase";
 
 import PageWrapper from "../PageWrapper";
 import { PhaseGuard } from "../phase/PhaseGuard";
@@ -12,9 +12,9 @@ import { CountdownSection } from "./CountdownSection";
 import { DashboardHeader } from "./DashboardHeader";
 import DashboardQRCode from "./DashboardQRCode";
 import DevpostCard from "./DevpostCard";
-import HackerPackageCard from "./HackerPackageCard";
 import { HackathonConclusion } from "./HackathonConclusion";
 import HackathonsCanadaDiscord from "./HackathonsCanadaDiscord";
+import HackerPackageCard from "./HackerPackageCard";
 import ProfileCard from "./ProfileCard";
 import ProjectsCard from "./ProjectsCard";
 import { ThankYouCard } from "./ThankYouCard";
@@ -26,6 +26,7 @@ interface DashboardContentProps {
 export const DashboardContent = ({ user }: DashboardContentProps) => {
   // Lock everything for unassigned users
   const isLocked = user.role === "unassigned";
+  const { isPhase } = useHackathonPhase();
 
   return (
     <PageWrapper className="max-w-screen-xl 2xl:max-w-screen-xl">
@@ -36,10 +37,12 @@ export const DashboardContent = ({ user }: DashboardContentProps) => {
         })}
       >
         {/* Application Status - shown during pre-registration, registration and pre-event phases */}
-        <PhaseGuard phases={["pre-registration", "registration-open", "pre-event"]}>
-          <ApplicationStatus 
-            status={isPhaseActive("pre-registration") ? "coming_soon" : user.status} 
-            role={user.role} 
+        <PhaseGuard
+          phases={["pre-registration", "registration-open", "pre-event"]}
+        >
+          <ApplicationStatus
+            status={isPhase("pre-registration") ? "coming_soon" : user.status}
+            role={user.role}
           />
         </PhaseGuard>
 

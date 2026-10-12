@@ -16,6 +16,9 @@ export default {
     GitHub({
       clientId: process.env.GITHUB_CLIENT_ID!,
       clientSecret: process.env.GITHUB_CLIENT_SECRET!,
+      // GitHub appends iss=https://github.com/login/oauth. This Auth.js
+      // version otherwise checks that value against https://authjs.dev.
+      issuer: "https://github.com/login/oauth",
     }), 
     Credentials({
       async authorize(credentials) {

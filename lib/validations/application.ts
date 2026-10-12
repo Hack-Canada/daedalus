@@ -1,477 +1,216 @@
 import { z } from "zod";
-import { parsePhoneNumber, isValidPhoneNumber } from "libphonenumber-js";
 
-export const HackerApplicationDraftSchema = z
-  .object({
-    firstName: z.string().trim(),
-    lastName: z.string().trim(),
-    age: z
-      .string()
-      .refine(
-        (value) => {
-          if (!value) return true;
-          const age = parseInt(value);
-          return age >= 1 && age <= 111;
-        },
-        {
-          message: "Invalid age provided.",
-        },
-      )
-      .optional(),
-    pronouns: z
-      .object({
-        value: z.string().trim().optional(),
-        customValue: z.string().trim().optional(),
-      })
-      .refine(
-        (data) => {
-          if (data.value === "Other (please specify)") {
-            return data.customValue && data.customValue.trim().length > 0;
-          }
-          return true;
-        },
-        {
-          message: "Please specify your pronouns.",
-          path: ["customValue"],
-        },
-      ),
-    email: z
-      .string()
-      .trim()
-      .optional()
-      .refine(
-        (value) => value === "" || z.string().email().safeParse(value).success,
-        {
-          message: "Invalid email address.",
-        },
-      ),
-    phoneNumber: z
-      .string()
-      .trim()
-      .optional()
-      .refine(
-        (value) => {
-          if (!value || value === "") return true;
-          // Validate using libphonenumber-js for international format
-          return isValidPhoneNumber(value);
-        },
-        {
-          message: "Please provide a valid phone number in international format.",
-        },
-      )
-      .transform((value) => {
-        // Normalize to E.164 format to prevent duplicates
-        if (!value || value === "") return value;
-        try {
-          const phoneNumber = parsePhoneNumber(value);
-          return phoneNumber ? phoneNumber.number : value;
-        } catch {
-          return value;
-        }
-      }),
-    github: z
-      .string()
-      .trim()
-      .optional()
-      .refine(
-        (val) => {
-          if (val === "") return true;
-          if (typeof val !== "string") return false;
-          try {
-            const url = new URL(val);
-            return (
-              (url.hostname === "github.com" ||
-                url.hostname === "www.github.com") &&
-              url.pathname.split("/").filter(Boolean).length >= 1
-            );
-          } catch {
-            return false;
-          }
-        },
-        {
-          message:
-            "Please provide a valid GitHub profile URL (e.g., https://github.com/username)",
-        },
-      ),
-    linkedin: z
-      .string()
-      .trim()
-      .optional()
-      .refine(
-        (val) => {
-          if (val === "") return true;
-          if (typeof val !== "string") return false;
-          try {
-            const url = new URL(val);
-            return (
-              (url.hostname === "linkedin.com" ||
-                url.hostname === "www.linkedin.com") &&
-              /^\/in\/[a-zA-Z0-9-]+(\/)?$/.test(url.pathname)
-            );
-          } catch {
-            return false;
-          }
-        },
-        {
-          message:
-            "Please provide a valid LinkedIn profile URL (e.g., https://linkedin.com/in/username)",
-        },
-      ),
-    personalWebsite: z
-      .string()
-      .trim()
-      .optional()
-      .refine((val) => val === "" || z.string().url().safeParse(val).success, {
-        message: "Invalid URL provided.",
-      }),
-    resumeUrl: z.string().trim().optional(),
-    shareResume: z.boolean().optional(),
-    school: z
-      .object({
-        value: z.string().trim().optional(),
-        customValue: z.string().trim().optional(),
-      })
-      .refine(
-        (data) => {
-          if (data.value === "Other (please specify)") {
-            return data.customValue && data.customValue.trim().length > 0;
-          }
-          return true;
-        },
-        {
-          message: "Please specify your school/university.",
-          path: ["customValue"],
-        },
-      ),
-    major: z
-      .object({
-        value: z.string().trim().optional(),
-        customValue: z.string().trim().optional(),
-      })
-      .refine(
-        (data) => {
-          if (data.value === "Other (please specify)") {
-            return data.customValue && data.customValue.trim().length > 0;
-          }
-          return true;
-        },
-        {
-          message: "Please specify your major / field of study.",
-          path: ["customValue"],
-        },
-      ),
-    levelOfStudy: z.string().trim().optional(),
-    graduationYear: z
-      .string()
-      .refine(
-        (value) => {
-          if (!value) return true;
-          const year = parseInt(value);
-          return year >= 2000 && year <= 2077;
-        },
-        {
-          message: "Invalid year provided.",
-        },
-      )
-      .optional(),
-    gender: z.string().trim().optional(),
-    race: z.string().trim().optional(),
-    country: z.string().trim().optional(),
-    shortAnswer1: z
-      .string()
-      .trim()
-      .max(2000, {
-        message: "Your answer must be 2000 characters or less.",
-      })
-      .optional(),
-    shortAnswer2: z
-      .string()
-      .trim()
-      .max(555, {
-        message: "Your answer must be 555 characters or less.",
-      })
-      .optional(),
-    shortAnswer3: z
-      .string()
-      .trim()
-      .max(555, {
-        message: "Your answer must be 555 characters or less.",
-      })
-      .optional(),
-    technicalInterests: z.string().trim().optional(),
-    hackathonsAttended: z.string().optional(),
-    mlhCheckbox1: z.boolean().optional(),
-    mlhCheckbox2: z.boolean().optional(),
-    mlhCheckbox3: z.boolean().optional(),
-  })
-  .strict();
+import {
+  ESSAY_WORD_LIMIT,
+  MARS_WORD_LIMIT,
+  NORMAL_WORD_LIMIT,
+} from "@/config/apply";
+import { travelAmountError } from "@/lib/apply/travel";
+import { isHttpUrl, isSocialUrl } from "@/lib/apply/urls";
+import { wordCount } from "@/lib/apply/words";
 
-export const HackerApplicationSubmissionSchema = z
-  .object({
-    firstName: z.string().trim().min(1, { message: "First name is required" }),
-    lastName: z.string().trim().min(1, { message: "Last name is required" }),
-    age: z
-      .string()
-      .min(1, { message: "Invalid age provided." })
-      .max(3, { message: "Invalid age provided." })
-      .refine(
-        (value) => {
-          const age = parseInt(value);
-          return age >= 1 && age <= 123;
-        },
-        {
-          message: "Invalid age provided.",
-        },
-      ),
-    pronouns: z
-      .object({
-        value: z.string().trim().min(1, { message: "Pronouns are required" }),
-        customValue: z
-          .string()
-          .trim()
-          .max(50, {
-            message: "Pronouns must be 50 characters or less.",
-          })
-          .optional(),
-      })
-      .refine(
-        (data) => {
-          if (data.value === "Other (please specify)") {
-            return data.customValue && data.customValue.trim().length > 0;
-          }
-          return true;
-        },
-        {
-          message: "Please specify your pronouns.",
-          path: ["customValue"],
-        },
-      ),
-    email: z.string().trim().email({ message: "Invalid email address" }),
-    phoneNumber: z
-      .string()
-      .trim()
-      .min(1, { message: "Phone number is required" })
-      .refine(
-        (value) => {
-          // Validate using libphonenumber-js for international format
-          return isValidPhoneNumber(value);
-        },
-        {
-          message: "Please provide a valid phone number in international format.",
-        },
-      )
-      .transform((value) => {
-        // Normalize to E.164 format to prevent duplicates (e.g., +12907950000)
-        try {
-          const phoneNumber = parsePhoneNumber(value);
-          return phoneNumber ? phoneNumber.number : value;
-        } catch {
-          return value;
-        }
-      }),
-    github: z
-      .string()
-      .trim()
-      .refine(
-        (val) => {
-          if (val === "") return true;
-          if (typeof val !== "string") return false;
-          try {
-            const url = new URL(val);
-            return (
-              url.hostname === "github.com" &&
-              url.pathname.split("/").filter(Boolean).length >= 1
-            );
-          } catch {
-            return false;
-          }
-        },
-        {
-          message:
-            "Please provide a valid GitHub profile URL (e.g., https://github.com/username)",
-        },
-      ),
-    linkedin: z
-      .string()
-      .trim()
-      .refine(
-        (val) => {
-          if (val === "") return true;
-          if (typeof val !== "string") return false;
-          try {
-            const url = new URL(val);
-            return (
-              url.hostname === "www.linkedin.com" &&
-              /^\/in\/[a-zA-Z0-9-]+(\/)?$/.test(url.pathname)
-            );
-          } catch {
-            return false;
-          }
-        },
-        {
-          message:
-            "Please provide a valid LinkedIn profile URL (e.g., https://www.linkedin.com/in/username)",
-        },
-      ),
-    personalWebsite: z
-      .string()
-      .trim()
-      .refine((val) => val === "" || z.string().url().safeParse(val).success, {
-        message: "Invalid URL provided.",
-      }),
-    resumeUrl: z.string().trim().min(1, { message: "Please upload a resume" }),
-    shareResume: z.boolean(),
-    school: z
-      .object({
-        value: z.string().trim().min(1, { message: "School is required" }),
-        customValue: z.string().trim().optional(),
-      })
-      .refine(
-        (data) => {
-          if (data.value === "Other (please specify)") {
-            return data.customValue && data.customValue.trim().length > 0;
-          }
-          return true;
-        },
-        {
-          message: "Please specify your school/university.",
-          path: ["customValue"],
-        },
-      ),
-    major: z
-      .object({
-        value: z.string().trim().min(1, { message: "Major/Field is required" }),
-        customValue: z.string().trim().optional(),
-      })
-      .refine(
-        (data) => {
-          if (data.value === "Other (please specify)") {
-            return data.customValue && data.customValue.trim().length > 0;
-          }
-          return true;
-        },
-        {
-          message: "Please specify your major / field of study.",
-          path: ["customValue"],
-        },
-      ),
-    levelOfStudy: z
-      .string()
-      .trim()
-      .min(1, { message: "Level of study is required" }),
-    graduationYear: z
-      .string()
-      .min(1, { message: "Invalid year provided." })
-      .refine(
-        (value) => {
-          const year = parseInt(value);
-          return year >= 1900 && year <= 2077;
-        },
-        {
-          message: "Invalid year provided.",
-        },
-      ),
-    gender: z.string().trim().min(1, { message: "Gender is required" }),
-    race: z.string().trim().min(1, { message: "Race is required" }),
-    country: z.string().trim().min(1, { message: "Country is required" }),
-    shortAnswer1: z
-      .string()
-      .trim()
-      .max(2000, {
-        message: "Your answer must be 2000 characters or less.",
-      })
-      .optional(),
-    shortAnswer2: z
-      .string()
-      .trim()
-      .max(555, {
-        message: "Your answer must be 555 characters or less.",
-      })
-      .optional(),
-    shortAnswer3: z
-      .string()
-      .trim()
-      .max(555, {
-        message: "Your answer must be 555 characters or less.",
-      })
-      .optional(),
-    technicalInterests: z.string().trim(),
-    hackathonsAttended: z
-      .string()
-      .min(1, { message: "Invalid value provided." })
-      .max(3, { message: "Invalid value provided." })
-      .refine(
-        (value) => {
-          const attended = parseInt(value);
-          return attended >= 0 && attended <= 2077;
-        },
-        {
-          message: "Invalid value provided.",
-        },
-      ),
-    mlhCheckbox1: z
-      .boolean({ required_error: "You must agree to the MLH Code of Conduct." })
-      .refine((val) => val === true, {
+function withinWords(value: string, limit: number) {
+  return wordCount(value) <= limit;
+}
+
+const applyObject = z.object({
+  applicationType: z.enum(["quick", "normal", "team"]),
+  firstName: z.string().trim(),
+  lastName: z.string().trim(),
+  age: z
+    .string()
+    .trim()
+    .refine((value) => {
+      if (!value) return true;
+      const age = Number(value);
+      return Number.isInteger(age) && age >= 1 && age <= 123;
+    }, "Invalid age provided."),
+  email: z
+    .string()
+    .trim()
+    .refine(
+      (value) => value === "" || z.string().email().safeParse(value).success,
+      "Invalid email address.",
+    ),
+  school: z.object({
+    value: z.string().trim(),
+    customValue: z.string().trim().optional(),
+  }),
+  country: z.string().trim(),
+  levelOfStudy: z.string().trim(),
+  hackathonsAttended: z
+    .string()
+    .trim()
+    .refine((value) => {
+      if (!value) return true;
+      const attended = Number(value);
+      return Number.isInteger(attended) && attended >= 0 && attended <= 100;
+    }, "Enter a number from 0 to 100."),
+  personalWebsite: z
+    .string()
+    .trim()
+    .refine(isHttpUrl, "Enter a link, like https://yoursite.com."),
+  linkedin: z
+    .string()
+    .trim()
+    .refine(
+      (value) => isSocialUrl(value, ["linkedin.com"]),
+      "Enter a LinkedIn profile URL (e.g., https://www.linkedin.com/in/username).",
+    ),
+  github: z
+    .string()
+    .trim()
+    .refine(
+      (value) => isSocialUrl(value, ["github.com"]),
+      "Enter a GitHub profile URL (e.g., https://github.com/username).",
+    ),
+  xUrl: z
+    .string()
+    .trim()
+    .refine(
+      (value) => isSocialUrl(value, ["x.com", "twitter.com"]),
+      "Enter an X profile URL (e.g., https://x.com/username).",
+    ),
+  resumeUrl: z.string().trim(),
+  shareResume: z.boolean(),
+  mlhCheckbox1: z.boolean(),
+  mlhCheckbox2: z.boolean(),
+  mlhCheckbox3: z.boolean(),
+  needsTravelReimbursement: z.boolean(),
+  travelAmount: z.string().trim().superRefine((value, ctx) => {
+    const message = travelAmountError(value);
+    if (!message) return;
+    ctx.addIssue({ code: z.ZodIssueCode.custom, message });
+  }),
+  travelFrom: z.string().trim().max(120, "Keep this to 120 characters or less."),
+  normalAnswer1: z.string().trim().refine(
+    (value) => withinWords(value, NORMAL_WORD_LIMIT),
+    `Your answer must be ${NORMAL_WORD_LIMIT} words or less.`,
+  ),
+  normalAnswer2: z.string().trim().refine(
+    (value) => withinWords(value, NORMAL_WORD_LIMIT),
+    `Your answer must be ${NORMAL_WORD_LIMIT} words or less.`,
+  ),
+});
+
+function requireText(
+  ctx: z.RefinementCtx,
+  value: string,
+  path: string,
+  message: string,
+) {
+  if (!value.trim()) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, message, path: [path] });
+  }
+}
+
+export const HackerApplicationDraftSchema = applyObject;
+
+export const HackerApplicationSubmissionSchema = applyObject.superRefine(
+  (data, ctx) => {
+    requireText(ctx, data.firstName, "firstName", "First name is required");
+    requireText(ctx, data.lastName, "lastName", "Last name is required");
+    requireText(ctx, data.age, "age", "Age is required");
+    requireText(ctx, data.country, "country", "Country of residence is required");
+    requireText(ctx, data.levelOfStudy, "levelOfStudy", "Level of study is required");
+    requireText(
+      ctx,
+      data.hackathonsAttended,
+      "hackathonsAttended",
+      "Tell us how many hackathons you have attended",
+    );
+    requireText(ctx, data.resumeUrl, "resumeUrl", "Please upload a resume");
+
+    if (!data.school.value) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "School is required",
+        path: ["school", "value"],
+      });
+    }
+
+    if (
+      data.school.value === "Other (please specify)" &&
+      !data.school.customValue?.trim()
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Please specify your school/university.",
+        path: ["school", "customValue"],
+      });
+    }
+
+    if (!data.mlhCheckbox1) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
         message: "You must agree to the MLH Code of Conduct.",
-      }),
-    mlhCheckbox2: z
-      .boolean({ required_error: "You must agree to the MLH Privacy Policy." })
-      .refine((val) => val === true, {
+        path: ["mlhCheckbox1"],
+      });
+    }
+
+    if (!data.mlhCheckbox2) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
         message: "You must agree to the MLH Privacy Policy and Contest Terms.",
-      }),
-    mlhCheckbox3: z.boolean(),
-  })
-  .superRefine((data, ctx) => {
-    // Require at least one answer
-    if (!data.shortAnswer1 && !data.shortAnswer2 && !data.shortAnswer3) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "You must answer at least one of the short answer questions",
-        path: ["shortAnswer1"],
-      });
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "You must answer at least one of the short answer questions",
-        path: ["shortAnswer2"],
-      });
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "You must answer at least one of the short answer questions",
-        path: ["shortAnswer3"],
+        path: ["mlhCheckbox2"],
       });
     }
 
-    // If shortAnswer1 is provided, require min 32 chars
-    if (data.shortAnswer1 && data.shortAnswer1.trim().length < 32) {
+    if (!data.mlhCheckbox3) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: "Your answer must be at least 32 characters in length",
-        path: ["shortAnswer1"],
+        message: "You must agree to the MLH email authorization.",
+        path: ["mlhCheckbox3"],
       });
     }
 
-    // If shortAnswer2 is provided, require min 32 chars
-    if (data.shortAnswer2 && data.shortAnswer2.trim().length < 32) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "Your answer must be at least 32 characters in length",
-        path: ["shortAnswer2"],
-      });
+    if (data.needsTravelReimbursement) {
+      requireText(
+        ctx,
+        data.travelAmount,
+        "travelAmount",
+        "Enter how much reimbursement you need",
+      );
+      requireText(
+        ctx,
+        data.travelFrom,
+        "travelFrom",
+        "Tell us where you are travelling from",
+      );
     }
 
-    // If shortAnswer3 is provided, require min 32 chars
-    if (data.shortAnswer3 && data.shortAnswer3.trim().length < 32) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "Your answer must be at least 32 characters in length",
-        path: ["shortAnswer3"],
-      });
+    if (data.applicationType === "normal") {
+      if (!data.normalAnswer1.trim()) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "This answer is required",
+          path: ["normalAnswer1"],
+        });
+      }
+      if (!data.normalAnswer2.trim()) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "This answer is required",
+          path: ["normalAnswer2"],
+        });
+      }
     }
-  });
+  },
+);
 
-export type THackerApplicationDraft = z.infer<
-  typeof HackerApplicationDraftSchema
->;
+export type THackerApplicationDraft = z.infer<typeof HackerApplicationDraftSchema>;
 export type THackerApplicationSubmission = z.infer<
   typeof HackerApplicationSubmissionSchema
 >;
+
+export function teamAnswerError(marsAnswer: string, essay: string) {
+  if (!marsAnswer.trim()) return "Add your Mars answer before submitting.";
+  if (wordCount(marsAnswer) > MARS_WORD_LIMIT) {
+    return `Your Mars answer must be ${MARS_WORD_LIMIT} words or less.`;
+  }
+  if (!essay.trim()) return "Your team still needs the shared team answer.";
+  if (wordCount(essay) > ESSAY_WORD_LIMIT) {
+    return `The team answer must be ${ESSAY_WORD_LIMIT} words or less.`;
+  }
+  return null;
+}

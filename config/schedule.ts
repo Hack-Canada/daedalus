@@ -30,7 +30,7 @@ export const schedule: StaticScheduleItem[] = [
   {
     id: "opening-ceremony-fri",
     eventName: "Opening Ceremony",
-    eventDescription: "Opening ceremony for Hack Canada 2026",
+    eventDescription: "Opening ceremony for Hack Canada 2027",
     type: "ceremonies",
     location: "LH1001",
     startTime: new Date("2026-02-21T18:30:00-05:00"),

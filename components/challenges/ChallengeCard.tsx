@@ -2,6 +2,7 @@
 
 import { QRCodeSVG } from "qrcode.react";
 
+import { QR_LOGO_SRC } from "@/config/qr-code";
 import {
   Accordion,
   AccordionContent,
@@ -125,7 +126,7 @@ export function ChallengeCard({
                     size={200}
                     level="H"
                     imageSettings={{
-                      src: "/beaver-wave.webp",
+                      src: QR_LOGO_SRC,
                       height: 50,
                       width: 50,
                       excavate: true,

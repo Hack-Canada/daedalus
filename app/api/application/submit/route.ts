@@ -1,15 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/auth";
 
+import { MIN_TEAM_APPLY } from "@/config/apply";
 import { ApiResponse } from "@/types/api";
+import { toApplicationRow } from "@/lib/apply/payload";
 import {
-  checkPhoneNumberExists,
   createOrUpdateApplication,
   submitApplication,
 } from "@/lib/db/queries/application";
+import { getTeamForUser } from "@/lib/db/queries/team";
 import { sendApplicationSubmittedEmail } from "@/lib/emails/ses";
-import { HackerApplicationSubmissionSchema } from "@/lib/validations/application";
-import { isFeatureEnabled } from "@/config/phases";
+import { getPhaseState } from "@/lib/phase";
+import { deletePendingResume, finalizeResume } from "@/lib/storage/resume";
+import {
+  HackerApplicationSubmissionSchema,
+  teamAnswerError,
+} from "@/lib/validations/application";
 
 export async function POST(
   req: NextRequest,
@@ -17,32 +23,31 @@ export async function POST(
   try {
     const currentUser = await getCurrentUser();
 
-    if (!currentUser || !currentUser.id) {
+    if (!currentUser?.id) {
       return NextResponse.json({
         success: false,
         message: "You must be logged in to submit an application",
       });
     }
 
-    const body = await req.json();
-
-    if (currentUser.role !== "unassigned") {
+    if (currentUser.role !== "unassigned" || currentUser.status !== "not_applied") {
       return NextResponse.json({
         success: false,
-        message:
-          "You must not have received a decision to submit an application",
+        message: "You must not have received a decision to submit an application",
       });
     }
 
-    // Check if application submission is allowed based on current phase
-    if (!isFeatureEnabled("applicationSubmission")) {
+    const { features } = await getPhaseState();
+    if (!features.applicationSubmission) {
       return NextResponse.json({
         success: false,
         message: "Application submissions are not available at this time",
       });
     }
 
-    const validatedFields = HackerApplicationSubmissionSchema.safeParse(body);
+    const validatedFields = HackerApplicationSubmissionSchema.safeParse(
+      await req.json(),
+    );
 
     if (!validatedFields.success) {
       const errorMessages = Object.values(
@@ -61,126 +66,73 @@ export async function POST(
     }
 
     const { data } = validatedFields;
+    const team = await getTeamForUser(currentUser.id);
 
-    // Check if phone number is already in use by another user
-    const phoneExists = await checkPhoneNumberExists(
-      data.phoneNumber,
-      currentUser.id,
-    );
-    if (phoneExists) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "This phone number is already registered with another account.",
-        },
-        { status: 400 },
-      );
+    if (data.applicationType === "team") {
+      if (!team || team.members.length < MIN_TEAM_APPLY) {
+        return NextResponse.json(
+          {
+            success: false,
+            message: `A team application needs at least ${MIN_TEAM_APPLY} people, including you.`,
+          },
+          { status: 400 },
+        );
+      }
+
+      const mine = team.members.find((member) => member.isMe);
+      const teamError = teamAnswerError(mine?.marsAnswer || "", team.essay);
+      if (teamError) {
+        return NextResponse.json(
+          { success: false, message: teamError },
+          { status: 400 },
+        );
+      }
     }
 
-    // Convert string fields to numbers
-    const age = parseInt(data.age);
-    const graduationYear = parseInt(data.graduationYear);
+    let resumeUrl: string;
+    try {
+      resumeUrl = await finalizeResume(currentUser.id, data.resumeUrl);
+    } catch (error) {
+      console.error("Resume finalize error:", error);
+      return NextResponse.json({
+        success: false,
+        message: "Upload your resume again before submitting.",
+      });
+    }
 
-    // Convert object fields to strings
-    const pronouns = data.pronouns.customValue || data.pronouns.value;
-    const school = data.school.customValue || data.school.value;
-    const major = data.major.customValue || data.major.value;
-
-    // Create new application data from validated input
-    // SECURITY: Always use the authenticated user's email, never trust the form input
-    const applicationData = {
-      userId: currentUser.id,
-      firstName: data.firstName,
-      lastName: data.lastName,
-      age,
-      pronouns,
-      email: currentUser.email?.toLowerCase() || "",
-      phoneNumber: data.phoneNumber,
-      github: data.github,
-      linkedin: data.linkedin,
-      personalWebsite: data.personalWebsite,
-      resumeUrl: data.resumeUrl,
-      shareResume: data.shareResume,
-      school,
-      major,
-      levelOfStudy: data.levelOfStudy,
-      graduationYear,
-      gender: data.gender,
-      race: data.race,
-      country: data.country,
-      shortAnswer1: data.shortAnswer1,
-      shortAnswer2: data.shortAnswer2,
-      shortAnswer3: data.shortAnswer3,
-      technicalInterests: data.technicalInterests,
-      hackathonsAttended: data.hackathonsAttended,
-      mlhCheckbox1: data.mlhCheckbox1,
-      mlhCheckbox2: data.mlhCheckbox2,
-      mlhCheckbox3: data.mlhCheckbox3,
+    const createResult = await createOrUpdateApplication({
+      ...toApplicationRow(
+        { ...data, resumeUrl },
+        currentUser.id,
+        currentUser.email || "",
+        Boolean(team),
+      ),
       submissionStatus: "submitted",
-    };
-
-    // Check that the deadline has not passed
-    const url = new URL(req.url);
-    const response = await fetch(`${url.origin}/api/application/deadline`, {
-      next: { revalidate: 0 },
     });
-    if (!response.ok) {
-      return NextResponse.json({
-        success: false,
-        message: "Failed to fetch application deadline",
-      });
-    }
 
-    const {
-      data: { deadline },
-    } = await response.json();
-
-    if (!deadline) {
-      return NextResponse.json({
-        success: false,
-        message: "Failed to fetch application deadline",
-      });
-    }
-
-    if (new Date() > new Date(deadline)) {
-      return NextResponse.json({
-        success: false,
-        message: "The deadline to submit your application has passed",
-      });
-    }
-
-    // First create/update the application
-    const createResult = await createOrUpdateApplication(applicationData);
-    if (!createResult.success) {
-      console.error("Create/Update Application Error:", createResult.errors);
+    if (!createResult.success || !createResult.data) {
       return NextResponse.json({
         success: false,
         message: "Failed to create application. Please try again.",
       });
     }
 
-    // Then submit the application
-    if (!createResult.data) {
-      return NextResponse.json({
-        success: false,
-        message: "Failed to create application data. Please try again.",
-      });
-    }
-
     const updatedApplication = await submitApplication(createResult.data);
-
     if (!updatedApplication.success) {
-      console.error(
-        "Error submitting application: ",
-        updatedApplication.errors,
-      );
       return NextResponse.json({
         success: false,
         message: "Failed to submit application. Please try again.",
       });
     }
 
-    // Send confirmation email
+    if (data.resumeUrl.startsWith("pending/")) {
+      try {
+        await deletePendingResume(currentUser.id, data.resumeUrl);
+      } catch (error) {
+        console.error("Pending resume cleanup error:", error);
+      }
+    }
+
     await sendApplicationSubmittedEmail({
       name: data.firstName,
       email: currentUser.email || data.email,

@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 
 import { AnimatedSnowflake } from "@/components/ui/AnimatedSnowflake";
+import { PageTransition } from "@/components/PageTransition";
 
 export default function AuthLayout({
   children,
@@ -39,7 +40,7 @@ export default function AuthLayout({
       />
 
       <div className="relative z-10 w-full max-w-md">
-        {children}
+        <PageTransition>{children}</PageTransition>
         <div className="mt-6 text-center">
           <Link
             href="https://hackcanada.org"

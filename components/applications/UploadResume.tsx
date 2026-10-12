@@ -5,6 +5,7 @@ import { Control, UseFormWatch } from "react-hook-form";
 
 import { THackerApplicationSubmission } from "@/lib/validations/application";
 import { useUploadResume } from "@/hooks/useUploadResume";
+import { OpenResumeButton } from "@/components/applications/OpenResumeButton";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -22,7 +23,7 @@ interface UploadResumeProps {
 }
 
 export function UploadResume({ control, watch }: UploadResumeProps) {
-  const { handleFileUpload, deleteResume, getResumeUrl, isPending } =
+  const { handleFileUpload, deleteResume, previewUrl, isPending } =
     useUploadResume();
   const resumeUrl = watch("resumeUrl");
 
@@ -56,7 +57,11 @@ export function UploadResume({ control, watch }: UploadResumeProps) {
                   e.preventDefault();
                   e.currentTarget.classList.remove("bg-white/10", "border-primary/40");
                   if (e.dataTransfer.files[0]) {
-                    handleFileUpload(e.dataTransfer.files[0], field.onChange);
+                    handleFileUpload(
+                      e.dataTransfer.files[0],
+                      field.onChange,
+                      resumeUrl,
+                    );
                   }
                 }}
               >
@@ -110,34 +115,50 @@ export function UploadResume({ control, watch }: UploadResumeProps) {
                     )}
                   </p>
                   <p className="text-xs text-white/40">PDF only (max 5MB)</p>
-                  <Input
-                    type="file"
-                    accept=".pdf"
-                    onChange={(e) => {
-                      if (e.target.files?.[0]) {
-                        handleFileUpload(e.target.files[0], field.onChange);
-                      }
-                    }}
-                    id="resume-upload"
-                    className="hidden"
-                  />
                 </div>
               </button>
             )}
+            <Input
+              type="file"
+              accept=".pdf"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                e.target.value = "";
+                if (file) handleFileUpload(file, field.onChange, resumeUrl);
+              }}
+              id="resume-upload"
+              className="hidden"
+            />
             {resumeUrl && (
               <div className="mt-4 flex items-center justify-between rounded-xl border border-white/20 bg-white/5 p-4">
                 <div className="flex items-center gap-2">
                   <ExternalLink className="h-5 w-5 text-white/50" />
-                  <a
-                    href={getResumeUrl(resumeUrl)}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-sm font-medium text-primary hover:text-primaryLight hover:underline"
-                  >
-                    View Resume
-                  </a>
+                  {previewUrl ? (
+                    <a
+                      href={previewUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-sm font-medium text-primary hover:text-primaryLight hover:underline"
+                    >
+                      View Resume
+                    </a>
+                  ) : (
+                    <OpenResumeButton className="text-sm font-medium text-primary hover:text-primaryLight hover:underline disabled:opacity-50" />
+                  )}
                 </div>
-                <Button
+                <div className="flex items-center gap-2">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    disabled={isPending}
+                    onClick={() =>
+                      document.getElementById("resume-upload")?.click()
+                    }
+                  >
+                    Replace
+                  </Button>
+                  <Button
                   type="button"
                   variant="ghost"
                   size="sm"
@@ -175,6 +196,7 @@ export function UploadResume({ control, watch }: UploadResumeProps) {
                   )}
                   {isPending ? "Deleting..." : "Delete"}
                 </Button>
+                </div>
               </div>
             )}
             <FormMessage />

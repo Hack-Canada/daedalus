@@ -1,20 +1,29 @@
 import { NextResponse } from "next/server";
-import { DeleteObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
+import { getCurrentUser } from "@/auth";
 
 import { ApiResponse } from "@/types/api";
-import { s3Client } from "@/lib/storage/s3";
+import {
+  deletePendingResume,
+  putPendingResume,
+} from "@/lib/storage/resume";
+import { ownsResumeKey } from "@/lib/storage/resume-key";
 
 export async function POST(request: Request) {
+  const currentUser = await getCurrentUser();
+  if (!currentUser?.id) {
+    return NextResponse.json<ApiResponse>(
+      { success: false, message: "You must be logged in to upload a resume" },
+      { status: 401 },
+    );
+  }
+
   const formData = await request.formData();
-  const file = formData.get("file") as File;
+  const file = formData.get("file") as File | null;
+  const replaceKey = formData.get("replaceKey");
 
   if (!file) {
     return NextResponse.json<ApiResponse>(
-      {
-        success: false,
-        message: "Validation error",
-        error: "No file provided",
-      },
+      { success: false, message: "Validation error", error: "No file provided" },
       { status: 400 },
     );
   }
@@ -41,19 +50,15 @@ export async function POST(request: Request) {
     );
   }
 
-  const key = `resumes/${Date.now()}-${file.name}`;
-
   try {
-    const buffer = await file.arrayBuffer();
+    const buffer = Buffer.from(await file.arrayBuffer());
+    const key = await putPendingResume(currentUser.id, buffer);
 
-    await s3Client.send(
-      new PutObjectCommand({
-        Bucket: process.env.AWS_S3_BUCKET_NAME,
-        Key: key,
-        Body: Buffer.from(buffer),
-        ContentType: file.type,
-      }),
-    );
+    if (typeof replaceKey === "string" && replaceKey && replaceKey !== key) {
+      if (ownsResumeKey(currentUser.id, replaceKey) && replaceKey.startsWith("pending/")) {
+        await deletePendingResume(currentUser.id, replaceKey);
+      }
+    }
 
     return NextResponse.json<ApiResponse<{ key: string }>>({
       success: true,
@@ -74,9 +79,17 @@ export async function POST(request: Request) {
 }
 
 export async function DELETE(request: Request) {
+  const currentUser = await getCurrentUser();
+  if (!currentUser?.id) {
+    return NextResponse.json<ApiResponse>(
+      { success: false, message: "You must be logged in to delete a resume" },
+      { status: 401 },
+    );
+  }
+
   const { key } = await request.json();
 
-  if (!key) {
+  if (!key || typeof key !== "string") {
     return NextResponse.json<ApiResponse>(
       {
         success: false,
@@ -88,13 +101,7 @@ export async function DELETE(request: Request) {
   }
 
   try {
-    await s3Client.send(
-      new DeleteObjectCommand({
-        Bucket: process.env.AWS_S3_BUCKET_NAME,
-        Key: key,
-      }),
-    );
-
+    await deletePendingResume(currentUser.id, key);
     return NextResponse.json<ApiResponse>({
       success: true,
       message: "File deleted successfully",

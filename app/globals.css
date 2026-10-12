@@ -16,6 +16,11 @@
   }
 }
 
+/* inline: --font-londrina lives on <body> (next/font), not :root */
+@theme inline {
+  --font-display: var(--font-londrina), var(--font-rubik), sans-serif;
+}
+
 @theme {
   --breakpoint-xs: 500px;
   --breakpoint-3xl: 1850px;
@@ -73,6 +78,56 @@
   --animate-flash: flash 0.5s ease-in-out;
   --animate-glow-pulse: glow-pulse 3s ease-in-out infinite;
   --animate-border-glow: border-glow 2s ease-in-out infinite;
+  --animate-page-in: page-in 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+  --animate-drift: drift 22s ease-in-out infinite alternate;
+
+  @keyframes page-in {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+  }
+  --animate-bob: bob 5s ease-in-out infinite;
+  --animate-twinkle: twinkle 3s ease-in-out infinite;
+  --animate-flicker: flicker 2.6s ease-in-out infinite;
+
+  @keyframes drift {
+    from {
+      transform: translateX(-10%);
+    }
+    to {
+      transform: translateX(10%);
+    }
+  }
+  @keyframes bob {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-8px);
+    }
+  }
+  @keyframes twinkle {
+    0%,
+    100% {
+      opacity: 0.25;
+    }
+    50% {
+      opacity: 1;
+    }
+  }
+  @keyframes flicker {
+    0%,
+    100% {
+      opacity: 0.55;
+      transform: scale(1);
+    }
+    50% {
+      opacity: 0.85;
+      transform: scale(1.08);
+    }
+  }
 
   @keyframes accordion-down {
     from {

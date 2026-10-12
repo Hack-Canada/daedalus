@@ -103,13 +103,15 @@ Follow these instructions to get a local copy of Daedalus up and running.
     AWS_SES_NO_REPLY_EMAIL="no-reply@your-domain.com"
     ```
 
-4.  **Set Up Database Schema:**
+4.  **Apply Database Migrations:**
 
-    Push the database schema to your PostgreSQL instance:
+    Apply committed migrations to the portal database:
 
     ```bash
-    bun run db:push
+    bun run db:migrate
     ```
+
+    Schema changes start in `lib/db/schema.ts`, then `bun run db:generate`, review the SQL under `drizzle/`, and `bun run db:migrate`.
 
 5.  **Launch the Development Server:**
 
@@ -121,15 +123,16 @@ Follow these instructions to get a local copy of Daedalus up and running.
 
 ### 🔧 Available Scripts
 
-| Command     | Bun Command         | Description               |
-| ----------- | ------------------- | ------------------------- |
-| Development | `bun dev`           | Start development server  |
-| Build       | `bun run build`     | Build for production      |
-| Start       | `bun start`         | Start production server   |
-| Lint        | `bun run lint`      | Run ESLint                |
-| Format      | `bun run format`    | Format code with Prettier |
-| DB Push     | `bun run db:push`   | Push schema to database   |
-| DB Studio   | `bun run db:studio` | Open Drizzle Studio       |
+| Command     | Bun Command           | Description                                      |
+| ----------- | --------------------- | ------------------------------------------------ |
+| Development | `bun dev`             | Start development server                         |
+| Build       | `bun run build`       | Build for production                             |
+| Start       | `bun start`           | Start production server                          |
+| Lint        | `bun run lint`        | Run ESLint                                       |
+| Format      | `bun run format`      | Format code with Prettier                        |
+| DB Generate | `bun run db:generate` | Write the next migration from `lib/db/schema.ts` |
+| DB Migrate  | `bun run db:migrate`  | Apply pending migrations                         |
+| DB Studio   | `bun run db:studio`   | Open Drizzle Studio                              |
 
 ### 🐛 Troubleshooting
 

@@ -29,7 +29,7 @@ const HackathonPrepEmail = ({ name, userId }: Props) => {
   return (
     <Html>
       <Preview>
-        🚀 Hack Canada Event Details and Check-in Information - 2026
+        {`🚀 Hack Canada Event Details and Check-in Information - ${hackathonYear}`}
       </Preview>
       <Tailwind
         config={{

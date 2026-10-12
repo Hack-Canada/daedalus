@@ -1,18 +1,26 @@
 /**
- * Hackathon Phase Configuration System
- *
- * This file contains the centralized configuration for all phase-dependent
- * features in the application. Phases are automatically determined based on
- * the current date and configured date boundaries.
+ * Phase feature matrix and pure date resolution.
+ * The live phase is chosen in lib/phase.ts (cookie, env, then the eventConfig row).
  */
 
-// Phase types
-export type HackathonPhase =
-  | "pre-registration" // Before registration opens
-  | "registration-open" // Registration is available
-  | "pre-event" // Registration closed, before event starts
-  | "during-event" // Event is happening
-  | "post-event"; // Event concluded
+export const HACKATHON_PHASES = [
+  "pre-registration",
+  "registration-open",
+  "pre-event",
+  "during-event",
+  "post-event",
+] as const;
+
+export type HackathonPhase = (typeof HACKATHON_PHASES)[number];
+
+export const PHASE_PREVIEW_COOKIE = "hc-phase";
+
+export type PhaseDates = {
+  registrationOpen: Date;
+  registrationClose: Date;
+  eventStart: Date;
+  eventEnd: Date;
+};
 
 // Phase dates - keep HEAD's functional dates
 export const phaseDates = {
@@ -166,100 +174,128 @@ export const phaseFeatures: Record<HackathonPhase, PhaseFeatures> = {
   },
 };
 
-// ============================================================================
-// Phase Detection Logic
-// ============================================================================
+export type PhaseSnapshot = {
+  phase: HackathonPhase;
+  features: PhaseFeatures;
+  dates: {
+    registrationOpen: string;
+    registrationClose: string;
+    eventStart: string;
+    eventEnd: string;
+  };
+  /** Dev cookie phase when that cookie is what won. Otherwise null. */
+  preview: HackathonPhase | null;
+};
 
-export function getCurrentPhase(now: Date = new Date()): HackathonPhase {
-  if (typeof process !== "undefined" && process.env.FORCE_HACKATHON_PHASE) {
-    const forcedPhase = process.env.FORCE_HACKATHON_PHASE as HackathonPhase;
-    if (isValidPhase(forcedPhase)) {
-      return forcedPhase;
-    }
-  }
+export function isHackathonPhase(phase: string): phase is HackathonPhase {
+  return (HACKATHON_PHASES as readonly string[]).includes(phase);
+}
 
+export function phaseFromDates(now: Date, dates: PhaseDates): HackathonPhase {
   const currentTime = now.getTime();
 
-  if (currentTime < phaseDates.registrationOpen.getTime()) {
+  if (currentTime < dates.registrationOpen.getTime()) {
     return "pre-registration";
   }
 
-  if (currentTime < phaseDates.registrationClose.getTime()) {
+  if (currentTime < dates.registrationClose.getTime()) {
     return "registration-open";
   }
 
-  if (currentTime < phaseDates.eventStart.getTime()) {
+  if (currentTime < dates.eventStart.getTime()) {
     return "pre-event";
   }
 
-  if (currentTime < phaseDates.eventEnd.getTime()) {
+  if (currentTime < dates.eventEnd.getTime()) {
     return "during-event";
   }
 
   return "post-event";
 }
 
-function isValidPhase(phase: string): phase is HackathonPhase {
-  return [
-    "pre-registration",
-    "registration-open",
-    "pre-event",
-    "during-event",
-    "post-event",
-  ].includes(phase);
+export function resolvePhase(input: {
+  now: Date;
+  dates: PhaseDates;
+  cookiePhase?: string | null;
+  envPhase?: string | null;
+  dbPhase?: string | null;
+}): HackathonPhase {
+  if (input.cookiePhase && isHackathonPhase(input.cookiePhase)) {
+    return input.cookiePhase;
+  }
+
+  if (input.envPhase && isHackathonPhase(input.envPhase)) {
+    return input.envPhase;
+  }
+
+  if (input.dbPhase && isHackathonPhase(input.dbPhase)) {
+    return input.dbPhase;
+  }
+
+  return phaseFromDates(input.now, input.dates);
 }
 
 export function getPhaseFeatures(phase: HackathonPhase): PhaseFeatures {
   return phaseFeatures[phase];
 }
 
-export function getCurrentPhaseFeatures(): PhaseFeatures {
-  const currentPhase = getCurrentPhase();
-  return getPhaseFeatures(currentPhase);
+function assertResolvePhase() {
+  const early = new Date("2020-01-01T00:00:00Z");
+  const afterEvent = new Date("2026-10-07T16:00:00Z");
+
+  if (
+    resolvePhase({
+      now: early,
+      dates: phaseDates,
+      cookiePhase: "during-event",
+      envPhase: "pre-registration",
+      dbPhase: "post-event",
+    }) !== "during-event"
+  ) {
+    throw new Error("phase cookie must beat env and the database");
+  }
+
+  if (
+    resolvePhase({
+      now: early,
+      dates: phaseDates,
+      envPhase: "pre-event",
+      dbPhase: "post-event",
+    }) !== "pre-event"
+  ) {
+    throw new Error("phase env must beat the database");
+  }
+
+  if (
+    resolvePhase({
+      now: early,
+      dates: phaseDates,
+      dbPhase: "registration-open",
+    }) !== "registration-open"
+  ) {
+    throw new Error("locked database phase must beat the dates");
+  }
+
+  if (resolvePhase({ now: early, dates: phaseDates }) !== "pre-registration") {
+    throw new Error("dates must decide when nothing is forced");
+  }
+
+  if (resolvePhase({ now: afterEvent, dates: phaseDates }) !== "post-event") {
+    throw new Error("a date after event end must be post-event");
+  }
+
+  if (
+    resolvePhase({
+      now: afterEvent,
+      dates: phaseDates,
+      cookiePhase: "nope",
+      envPhase: "registration-open",
+    }) !== "registration-open"
+  ) {
+    throw new Error("an invalid override must fall through");
+  }
 }
 
-export function isFeatureEnabled(featureName: keyof PhaseFeatures): boolean {
-  const features = getCurrentPhaseFeatures();
-  return features[featureName] as boolean;
+if (process.env.NODE_ENV === "development") {
+  assertResolvePhase();
 }
-
-export function isPhaseActive(...phases: HackathonPhase[]): boolean {
-  const currentPhase = getCurrentPhase();
-  return phases.includes(currentPhase);
-}
-
-// Helper functions
-export function getApplicationDeadline(): Date {
-  return phaseDates.registrationClose;
-}
-
-export function getEventDate(): Date {
-  return phaseDates.eventStart;
-}
-
-export function areApplicationsOpen(): boolean {
-  return isPhaseActive("registration-open");
-}
-
-export function isEventActive(): boolean {
-  return isPhaseActive("during-event");
-}
-
-export function isEventConcluded(): boolean {
-  return isPhaseActive("post-event");
-}
-
-export default {
-  phaseDates,
-  phaseFeatures,
-  getCurrentPhase,
-  getPhaseFeatures,
-  getCurrentPhaseFeatures,
-  isFeatureEnabled,
-  isPhaseActive,
-  getApplicationDeadline,
-  getEventDate,
-  areApplicationsOpen,
-  isEventActive,
-  isEventConcluded,
-};

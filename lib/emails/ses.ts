@@ -9,6 +9,8 @@ import ApplicationReminderEmail from "@/components/emails/ApplicationReminderEma
 import ApplicationSubmittedEmail from "@/components/emails/ApplicationSubmittedEmail";
 import HackathonPrepEmail from "@/components/emails/HackathonPrepEmail";
 import ResetPasswordEmail from "@/components/emails/ResetPasswordEmail";
+import TeamAcceptedEmail from "@/components/emails/TeamAcceptedEmail";
+import TeamRequestEmail from "@/components/emails/TeamRequestEmail";
 import WelcomeEmail from "@/components/emails/WelcomeEmail";
 
 const ses = new SESClient({
@@ -216,6 +218,45 @@ export const sendApplicationSubmittedEmail = async (
   return result;
 };
 
+const teamPageUrl = () =>
+  `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3001"}/apply/teams`;
+
+export const sendTeamRequestEmail = async (data: {
+  to: string;
+  ownerName: string;
+  requesterName: string;
+  teamName: string;
+}) => {
+  const body = await render(
+    TeamRequestEmail({
+      ownerName: data.ownerName,
+      requesterName: data.requesterName,
+      teamName: data.teamName,
+      reviewUrl: teamPageUrl(),
+    }),
+  );
+  return sendEmail(
+    data.to,
+    `${data.requesterName} asked to join ${data.teamName}`,
+    body,
+  );
+};
+
+export const sendTeamAcceptedEmail = async (data: {
+  to: string;
+  name: string;
+  teamName: string;
+}) => {
+  const body = await render(
+    TeamAcceptedEmail({
+      name: data.name,
+      teamName: data.teamName,
+      teamUrl: teamPageUrl(),
+    }),
+  );
+  return sendEmail(data.to, `You're on ${data.teamName}`, body);
+};
+
 type HackathonPrepEmailProps = {
   name: string;
   email: string;
@@ -330,13 +371,11 @@ export const sendApplicationReminderEmail = async (
     ? "Quick reminder about your Hack Canada application"
     : "Your Hack Canada application";
 
-  const htmlBody = await render(
-    ApplicationReminderEmail({ name, hasDraft }),
-  );
+  const htmlBody = await render(ApplicationReminderEmail({ name, hasDraft }));
 
   const textBody = hasDraft
-    ? `Hey ${name},\n\nWe noticed you started your Hack Canada hacker application but haven't submitted it yet. Your progress is saved, so you can pick up right where you left off.\n\nIt should only take a few more minutes to finish up and submit.\n\nFinish your application: https://app.hackcanada.org/applications/hacker\n\nCheers,\nThe Hack Canada Team`
-    : `Hey ${name},\n\nYou created a Hack Canada account a little while ago, but we haven't received a hacker application from you yet.\n\nIf you're still interested in joining us, the application only takes about 10 minutes. We'd love to have you.\n\nGo to your application: https://app.hackcanada.org/applications/hacker\n\nCheers,\nThe Hack Canada Team`;
+    ? `Hey ${name},\n\nWe noticed you started your Hack Canada hacker application but haven't submitted it yet. Your progress is saved, so you can pick up right where you left off.\n\nIt should only take a few more minutes to finish up and submit.\n\nFinish your application: https://app.hackcanada.org/apply\n\nCheers,\nThe Hack Canada Team`
+    : `Hey ${name},\n\nYou created a Hack Canada account a little while ago, but we haven't received a hacker application from you yet.\n\nIf you're still interested in joining us, the application only takes about 10 minutes. We'd love to have you.\n\nGo to your application: https://app.hackcanada.org/apply\n\nCheers,\nThe Hack Canada Team`;
 
   const command = new SendEmailCommand({
     Source: `Hack Canada <${process.env.AWS_SES_NO_REPLY_EMAIL!}>` || "",

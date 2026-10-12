@@ -1,17 +1,17 @@
+import { type HackathonPhase } from "@/config/phases";
 import { cn } from "@/lib/utils";
-import { getCurrentPhase } from "@/config/phases";
 
 interface ApplicationCardStatusProps {
   status: "open" | "closed" | "coming soon";
   deadline?: string;
+  phase: HackathonPhase;
 }
 
 export const ApplicationCardStatus = ({
   status,
   deadline,
+  phase,
 }: ApplicationCardStatusProps) => {
-  const phase = getCurrentPhase();
-  
   // Dynamic message based on phase when status is closed
   const getClosedMessage = () => {
     if (phase === "post-event") {
@@ -26,9 +26,12 @@ export const ApplicationCardStatus = ({
         <div
           className={cn(
             "h-2 w-2 rounded-full",
-            status === "open" && "bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.5)]",
-            status === "closed" && "bg-rose-400 shadow-[0_0_8px_rgba(251,113,133,0.5)]",
-            status === "coming soon" && "bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.5)]",
+            status === "open" &&
+              "bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.5)]",
+            status === "closed" &&
+              "bg-rose-400 shadow-[0_0_8px_rgba(251,113,133,0.5)]",
+            status === "coming soon" &&
+              "bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.5)]",
           )}
         />
         <span

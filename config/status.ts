@@ -103,7 +103,7 @@ export const statusConfig: Record<
     description:
       "Awesome work submitting your application! Our team is reviewing it with care. Hang tight — exciting news is on its way to your inbox soon!",
     primaryAction: {
-      href: "/applications/hacker/review",
+      href: "/apply",
       label: "View My Application",
       variant: "primary",
     },
@@ -119,7 +119,7 @@ export const statusConfig: Record<
       description:
         "HUGE congrats — you're officially a Hack Canada hacker! Mark your calendar for March 6th and get ready for the best weekend ever. We can't wait to see what you'll build!",
       primaryAction: {
-        href: "/applications/hacker/review",
+        href: "/apply",
         label: "View My Application",
         variant: "primary",
       },
@@ -134,7 +134,7 @@ export const statusConfig: Record<
         variant: "primary",
       },
       secondaryAction: {
-        href: "/applications/hacker/review",
+        href: "/apply",
         label: "View Application",
         variant: "outline",
       },
@@ -145,7 +145,7 @@ export const statusConfig: Record<
     description:
       "We received so many incredible applications this year! While we couldn't accept everyone, your passion for building is what matters most. Keep creating, keep learning — we'd love to see you apply again!",
     primaryAction: {
-      href: "/applications/hacker/review",
+      href: "/apply",
       label: "View Application",
       variant: "destructive",
     },
@@ -160,7 +160,7 @@ export const statusConfig: Record<
     description:
       "You're on our waitlist! This means you're just one step away from joining the fun. We'll reach out the moment a spot opens up — fingers crossed!",
     primaryAction: {
-      href: "/applications/hacker/review",
+      href: "/apply",
       label: "View Application",
       variant: "secondary",
     },
@@ -175,7 +175,7 @@ export const statusConfig: Record<
     description:
       "You've cancelled your RSVP, but we'd love to have you back! If you've changed your mind, you can restore your RSVP below.",
     primaryAction: {
-      href: "/applications/hacker/review",
+      href: "/apply",
       label: "View Application",
       variant: "destructive",
     },

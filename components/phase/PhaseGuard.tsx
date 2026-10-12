@@ -20,13 +20,17 @@ interface PhaseGuardProps {
 
 /**
  * Conditionally renders children based on the current hackathon phase
- * 
+ *
  * @example
  * <PhaseGuard phases={["during-event", "post-event"]}>
  *   <ProjectsCard />
  * </PhaseGuard>
  */
-export function PhaseGuard({ phases, children, fallback = null }: PhaseGuardProps) {
+export function PhaseGuard({
+  phases,
+  children,
+  fallback = null,
+}: PhaseGuardProps) {
   const { isPhase } = useHackathonPhase();
 
   if (isPhase(...phases)) {
@@ -49,7 +53,7 @@ interface PhaseContentProps {
 
 /**
  * Renders different content based on the current hackathon phase
- * 
+ *
  * @example
  * <PhaseContent
  *   phases={{
@@ -63,7 +67,7 @@ export function PhaseContent({ phases, fallback = null }: PhaseContentProps) {
   const { phase } = useHackathonPhase();
 
   const content = phases[phase];
-  
+
   if (content !== undefined) {
     return <>{content}</>;
   }
@@ -86,13 +90,17 @@ interface FeatureGuardProps {
 
 /**
  * Conditionally renders children based on whether a feature is enabled
- * 
+ *
  * @example
  * <FeatureGuard feature="showCountdown">
  *   <CountdownTimer />
  * </FeatureGuard>
  */
-export function FeatureGuard({ feature, children, fallback = null }: FeatureGuardProps) {
+export function FeatureGuard({
+  feature,
+  children,
+  fallback = null,
+}: FeatureGuardProps) {
   const { isFeatureEnabled } = useHackathonPhase();
 
   if (isFeatureEnabled(feature as any)) {

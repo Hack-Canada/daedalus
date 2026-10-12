@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 
 import { ApiResponse } from "@/types/api";
-import { isFeatureEnabled } from "@/config/phases";
 import { db } from "@/lib/db";
 import {
   createVerificationToken,
@@ -12,6 +11,7 @@ import {
 import { getUserByEmail } from "@/lib/db/queries/user";
 import { users } from "@/lib/db/schema";
 import { sendWelcomeEmail } from "@/lib/emails/ses";
+import { getPhaseState } from "@/lib/phase";
 import { generateRandomCode } from "@/lib/utils";
 import { registerSchema } from "@/lib/validations/register";
 
@@ -32,7 +32,8 @@ export async function POST(req: Request): Promise<NextResponse<ApiResponse>> {
     const email = validatedEmail.toLowerCase();
 
     // Check if user registration is enabled based on current phase
-    if (!isFeatureEnabled("userRegistration")) {
+    const { features } = await getPhaseState();
+    if (!features.userRegistration) {
       // In production, allow only @hackcanada.org emails when registration is disabled
       if (process.env.NODE_ENV === "production") {
         if (!email.endsWith("@hackcanada.org")) {

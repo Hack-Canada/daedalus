@@ -18,10 +18,6 @@ export function wait(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-export const getResumeUrl = (key: string) => {
-  return `https://${process.env.NEXT_PUBLIC_AWS_S3_BUCKET_NAME}.s3.amazonaws.com/${key}`;
-};
-
 export async function fetcher<T>(
   url: string,
   options?: RequestInit,

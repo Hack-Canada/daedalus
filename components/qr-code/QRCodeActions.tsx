@@ -5,6 +5,7 @@ import { Download, Mail } from "lucide-react";
 import QRCode from "qrcode";
 import { toast } from "sonner";
 
+import { QR_LOGO_SRC } from "@/config/qr-code";
 import { Button } from "@/components/ui/button";
 
 interface QRCodeActionsProps {
@@ -82,7 +83,7 @@ export function QRCodeActions({
             console.warn("Could not load logo, continuing without it");
             resolve();
           };
-          logoImg.src = "/beaver-wave.webp";
+          logoImg.src = QR_LOGO_SRC;
         });
       }
 

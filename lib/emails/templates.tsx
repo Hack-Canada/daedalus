@@ -1,10 +1,11 @@
 import type { ReactElement } from "react";
 
-import HackathonPrepEmail from "@/components/emails/HackathonPrepEmail";
-import WelcomeEmail from "@/components/emails/WelcomeEmail";
 import ApplicationSubmittedEmail from "@/components/emails/ApplicationSubmittedEmail";
+import HackathonPrepEmail from "@/components/emails/HackathonPrepEmail";
 import ResetPasswordEmail from "@/components/emails/ResetPasswordEmail";
-
+import TeamAcceptedEmail from "@/components/emails/TeamAcceptedEmail";
+import TeamRequestEmail from "@/components/emails/TeamRequestEmail";
+import WelcomeEmail from "@/components/emails/WelcomeEmail";
 
 export interface EmailTemplate {
   id: string;
@@ -55,6 +56,33 @@ export const emailTemplates: EmailTemplate[] = [
       />
     ),
     subject: "Reset Your Password",
+  },
+  {
+    id: "team-request",
+    name: "Team request",
+    description: "Sent to a team owner when someone asks to join",
+    component: (
+      <TeamRequestEmail
+        ownerName="Ada"
+        requesterName="Grace"
+        teamName="Northwind"
+        reviewUrl="https://app.hackcanada.org/apply/teams"
+      />
+    ),
+    subject: "Grace asked to join Northwind",
+  },
+  {
+    id: "team-accepted",
+    name: "Team accepted",
+    description: "Sent when a team owner accepts a request",
+    component: (
+      <TeamAcceptedEmail
+        name="Grace"
+        teamName="Northwind"
+        teamUrl="https://app.hackcanada.org/apply/teams"
+      />
+    ),
+    subject: "You're on Northwind",
   },
 ];
 

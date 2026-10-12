@@ -209,7 +209,87 @@ export const hackerApplications = pgTable("hackerApplication", {
   normalizedAvgRating: integer("normalizedAvgRating"),
   lastNormalizedAt: timestamp("lastNormalizedAt"),
   isTeam: boolean("isTeam").notNull().default(false),
+  applicationType: text("applicationType"),
+  xUrl: text("xUrl"),
+  needsTravelReimbursement: boolean("needsTravelReimbursement"),
+  travelAmount: integer("travelAmount"),
+  travelFrom: text("travelFrom"),
 });
+
+export const teams = pgTable("team", {
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  name: text("name").notNull(),
+  isPublic: boolean("isPublic").notNull().default(false),
+  inviteToken: text("inviteToken").notNull().unique(),
+  lookingFor: text("lookingFor"),
+  answersLocked: boolean("answersLocked").notNull().default(false),
+  essay: text("essay"),
+  essayUpdatedBy: text("essayUpdatedBy").references(() => users.id, {
+    onDelete: "set null",
+  }),
+  essayUpdatedAt: timestamp("essayUpdatedAt"),
+  createdBy: text("createdBy")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  createdAt: timestamp("createdAt")
+    .notNull()
+    .default(sql`CURRENT_TIMESTAMP`),
+});
+
+export const teamMembers = pgTable(
+  "teamMember",
+  {
+    teamId: text("teamId")
+      .notNull()
+      .references(() => teams.id, { onDelete: "cascade" }),
+    userId: text("userId")
+      .notNull()
+      .unique()
+      .references(() => users.id, { onDelete: "cascade" }),
+    marsAnswer: text("marsAnswer"),
+    joinedAt: timestamp("joinedAt")
+      .notNull()
+      .default(sql`CURRENT_TIMESTAMP`),
+  },
+  (table) => [primaryKey({ columns: [table.teamId, table.userId] })],
+);
+
+export const teamRequests = pgTable(
+  "teamRequest",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    teamId: text("teamId")
+      .notNull()
+      .references(() => teams.id, { onDelete: "cascade" }),
+    userId: text("userId")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    status: text("status").notNull().default("pending"),
+    via: text("via").notNull(),
+    message: text("message"),
+    consentAt: timestamp("consentAt").notNull(),
+    createdAt: timestamp("createdAt")
+      .notNull()
+      .default(sql`CURRENT_TIMESTAMP`),
+    decidedAt: timestamp("decidedAt"),
+    decidedBy: text("decidedBy").references(() => users.id, {
+      onDelete: "set null",
+    }),
+  },
+  (table) => [
+    uniqueIndex("teamRequest_pending_unique")
+      .on(table.teamId, table.userId)
+      .where(sql`${table.status} = 'pending'`),
+  ],
+);
+
+export type Team = typeof teams.$inferSelect;
+export type TeamMember = typeof teamMembers.$inferSelect;
+export type TeamRequest = typeof teamRequests.$inferSelect;
 
 export const applicationReviews = pgTable("applicationReview", {
   id: text("id")
@@ -594,3 +674,23 @@ export const mailingListSubscribers = pgTable("mailingListSubscriber", {
 export type MailingListSubscriber = typeof mailingListSubscribers.$inferSelect;
 export type NewMailingListSubscriber =
   typeof mailingListSubscribers.$inferInsert;
+
+// Singleton row id is "default". phase null means derive from the dates.
+export const eventConfig = pgTable("eventConfig", {
+  id: text("id").primaryKey(),
+  phase: text("phase"),
+  registrationOpen: timestamp("registrationOpen", {
+    withTimezone: true,
+  }).notNull(),
+  registrationClose: timestamp("registrationClose", {
+    withTimezone: true,
+  }).notNull(),
+  eventStart: timestamp("eventStart", { withTimezone: true }).notNull(),
+  eventEnd: timestamp("eventEnd", { withTimezone: true }).notNull(),
+  updatedAt: timestamp("updatedAt")
+    .notNull()
+    .default(sql`CURRENT_TIMESTAMP`),
+});
+
+export type EventConfig = typeof eventConfig.$inferSelect;
+export type NewEventConfig = typeof eventConfig.$inferInsert;

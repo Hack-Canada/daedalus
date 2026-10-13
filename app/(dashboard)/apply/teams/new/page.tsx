@@ -16,7 +16,6 @@ export default async function NewTeamPage() {
 
   return (
     <TeamPage
-      eyebrow="Teams"
       title="Start a team"
       lede="You become the owner. People use your link to ask to join, and you accept or decline each one."
       backHref="/apply/teams"

@@ -24,7 +24,6 @@ export default async function TeamsPage() {
     const Visibility = team.isPublic ? Globe : Lock;
     return (
       <TeamPage
-        eyebrow="Your team"
         title={team.name}
         backHref={backHref}
         meta={
@@ -34,14 +33,12 @@ export default async function TeamsPage() {
               <Visibility className="size-3.5" aria-hidden />
               {team.isPublic ? "Listed publicly" : "Link only"}
             </span>
-            <span className="inline-flex items-center gap-1">
+            <span className="inline-flex items-center gap-2 text-sm text-white/60">
               <span
-                className={
-                  ready
-                    ? "rounded-full bg-emerald-400/15 px-2.5 py-1 text-xs text-emerald-100"
-                    : "rounded-full bg-amber-300/15 px-2.5 py-1 text-xs text-amber-100"
-                }
-              >
+                className={`size-1.5 rounded-full ${ready ? "bg-emerald-400" : "bg-amber-300"}`}
+                aria-hidden
+              />
+              <span>
                 {ready
                   ? "Ready to apply as a team"
                   : `Needs ${MIN_TEAM_APPLY - team.members.length} more to apply as a team`}
@@ -59,7 +56,6 @@ export default async function TeamsPage() {
   const requests = await listMyRequests(userId);
   return (
     <TeamPage
-      eyebrow="Teams"
       title="Find your people"
       lede={`Teams have up to ${MAX_TEAM_SIZE} people. Start one and share the link, or ask to join a public team. Owners accept every request.`}
       backHref={backHref}

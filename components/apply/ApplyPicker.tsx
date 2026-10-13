@@ -4,7 +4,7 @@ import { useState, type CSSProperties, type PointerEvent } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowRight, Check } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { toast } from "sonner";
 
 import { ApplyTrack, TRACKS } from "@/config/apply";
@@ -66,8 +66,6 @@ function onPointerMove(e: PointerEvent<HTMLElement>) {
   const x = e.clientX - box.left;
   const y = e.clientY - box.top;
   const style = e.currentTarget.style;
-  style.setProperty("--mx", `${x}px`);
-  style.setProperty("--my", `${y}px`);
   style.setProperty("--px", ((x / box.width) * 2 - 1).toFixed(3));
   style.setProperty("--py", ((y / box.height) * 2 - 1).toFixed(3));
 }
@@ -146,20 +144,11 @@ export function ApplyPicker({
             className={`${theme.panel} group animate-in fade-in fill-mode-both relative flex h-dvh snap-start overflow-hidden duration-700 motion-reduce:animate-none motion-reduce:transition-none lg:h-full lg:flex-1 lg:transition-[flex-grow,filter] lg:duration-700 lg:ease-[cubic-bezier(0.22,1,0.36,1)] lg:group-hover/picker:not-hover:brightness-90 lg:focus-within:flex-[1.3] lg:hover:flex-[1.3]`}
           >
             <Scenery id={track.id} />
-            <div
-              aria-hidden
-              className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100"
-              style={{
-                background:
-                  "radial-gradient(420px circle at var(--mx, 50%) var(--my, 50%), rgba(255,255,255,0.22), transparent 60%)",
-              }}
-            />
             {isCurrent || !hasDraft ? (
               <Link href={`/apply/${track.id}`} className={linkClass}>
                 <PanelCopy
                   track={track}
                   action={action}
-                  index={index}
                   isCurrent={isCurrent}
                 />
               </Link>
@@ -173,7 +162,6 @@ export function ApplyPicker({
                 <PanelCopy
                   track={track}
                   action={action}
-                  index={index}
                   isCurrent={false}
                 />
               </button>
@@ -188,48 +176,33 @@ export function ApplyPicker({
 function PanelCopy({
   track,
   action,
-  index,
   isCurrent,
 }: {
   track: Track;
   action: string;
-  index: number;
   isCurrent: boolean;
 }) {
   const theme = THEMES[track.id];
   return (
     <>
-      <span className="flex items-center gap-3 text-sm font-medium">
-        <span className="font-display text-base opacity-60">0{index + 1}</span>
+      {isCurrent && (
         <span
-          className={`rounded-full px-3 py-1 ring-1 backdrop-blur-sm ${theme.chip}`}
+          className={`inline-flex w-fit items-center gap-1.5 rounded-full px-3 py-1 text-sm font-medium ring-1 backdrop-blur-sm ${theme.chip}`}
         >
-          {track.tag}
-        </span>
-        {isCurrent && (
-          <span
-            className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 ring-1 backdrop-blur-sm ${theme.chip}`}
-          >
-            <span className="relative flex size-2">
-              <span className="absolute inline-flex size-full animate-ping rounded-full bg-emerald-400 opacity-75 motion-reduce:hidden" />
-              <span className="relative inline-flex size-2 rounded-full bg-emerald-400" />
-            </span>
-            Your draft
+          <span className="relative flex size-2">
+            <span className="absolute inline-flex size-full animate-ping rounded-full bg-emerald-400 opacity-75 motion-reduce:hidden" />
+            <span className="relative inline-flex size-2 rounded-full bg-emerald-400" />
           </span>
-        )}
-      </span>
+          Your draft
+        </span>
+      )}
 
       <span className="mt-auto block max-w-md pb-8 lg:pb-10">
-        <span
-          className={`block text-sm font-semibold tracking-wide uppercase ${theme.muted}`}
-        >
-          {track.tagline}
-        </span>
         <span
           id={`${track.id}-title`}
           role="heading"
           aria-level={2}
-          className="font-display mt-2 block text-5xl leading-[0.95] transition-transform duration-500 ease-out group-hover:-translate-y-1 md:text-6xl"
+          className="font-display block text-5xl leading-[0.95] transition-transform duration-500 ease-out group-hover:-translate-y-1 md:text-6xl"
         >
           {track.title}
         </span>
@@ -238,16 +211,12 @@ function PanelCopy({
         >
           {track.description}
         </span>
-        <span className="mt-5 flex flex-wrap content-start gap-2 lg:min-h-[4.25rem]">
-          {track.includes.map((item) => (
-            <span
-              key={item}
-              className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-sm ring-1 ${theme.chip}`}
-            >
-              <Check className="size-3.5" aria-hidden />
-              {item}
-            </span>
-          ))}
+        {/* Team keeps an invisible line so the arrows stay level across cards. */}
+        <span
+          aria-hidden={track.id === "team"}
+          className={`mt-4 block text-sm italic ${theme.muted} ${track.id === "team" ? "invisible" : ""}`}
+        >
+          You can still join a team later.
         </span>
       </span>
 
@@ -260,14 +229,7 @@ function PanelCopy({
             aria-hidden
           />
         </span>
-        <span className="flex flex-col">
-          {action}
-          {track.id !== "team" && (
-            <span className={`text-sm font-normal ${theme.muted}`}>
-              You can still join a team later.
-            </span>
-          )}
-        </span>
+        <span className="sr-only">{action}</span>
       </span>
     </>
   );
@@ -288,7 +250,7 @@ function Cloud({ className }: { className: string }) {
 
 const frame =
   "pointer-events-none absolute inset-0 transition-transform duration-700 ease-out motion-reduce:transition-none";
-// Art sits in the empty band between the tag row and the copy, sized by viewport height.
+// Art sits in the empty band above the copy, sized by viewport height.
 const stage = "absolute inset-x-0 top-[14%] flex justify-center";
 const art = "h-[min(24dvh,13rem)] w-auto";
 

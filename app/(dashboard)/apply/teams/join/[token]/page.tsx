@@ -74,7 +74,6 @@ export default async function JoinTeamPage({ params, searchParams }: Props) {
     if (!card) {
       return (
         <TeamPage
-          eyebrow="Team invite"
           title="Team link not found"
           lede="This link is invalid or was reset. Ask the owner for a new one."
         />
@@ -83,7 +82,6 @@ export default async function JoinTeamPage({ params, searchParams }: Props) {
     const { looking } = parseCardOptions(await searchParams);
     return (
       <TeamPage
-        eyebrow="Team invite · Hack Canada"
         title={card.name}
         meta={<SpotsMeter memberCount={card.memberCount} />}
       >
@@ -117,7 +115,6 @@ export default async function JoinTeamPage({ params, searchParams }: Props) {
   if (!team) {
     return (
       <TeamPage
-        eyebrow="Team invite"
         title="Team link not found"
         lede="This link is invalid or was reset. Ask the owner for a new one, or browse public teams."
         backHref={backHref}
@@ -131,7 +128,6 @@ export default async function JoinTeamPage({ params, searchParams }: Props) {
 
   return (
     <TeamPage
-      eyebrow="Team invite"
       title={team.name}
       meta={<SpotsMeter memberCount={team.memberCount} />}
       backHref={backHref}

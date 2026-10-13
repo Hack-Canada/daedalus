@@ -5,14 +5,12 @@ import { ApplyMark } from "@/components/apply/ApplyMark";
 
 export function TeamPage({
   title,
-  eyebrow,
   lede,
   meta,
   backHref,
   children,
 }: {
   title: string;
-  eyebrow?: string;
   lede?: string;
   meta?: React.ReactNode;
   backHref?: string;
@@ -34,12 +32,7 @@ export function TeamPage({
         </Link>
       )}
       <header className="animate-in fade-in slide-in-from-bottom-1 mt-6 duration-500 motion-reduce:animate-none">
-        {eyebrow && (
-          <p className="text-xs font-medium tracking-[0.18em] text-sky-300/80 uppercase">
-            {eyebrow}
-          </p>
-        )}
-        <h1 className="font-display mt-1 text-4xl break-words text-white md:text-5xl">
+        <h1 className="font-display text-4xl break-words text-white md:text-5xl">
           {title}
         </h1>
         {lede && <p className="mt-3 max-w-2xl text-white/65">{lede}</p>}

@@ -113,13 +113,6 @@ export const HackerApplicationSubmissionSchema = applyObject.superRefine(
     requireText(ctx, data.age, "age", "Age is required");
     requireText(ctx, data.country, "country", "Country of residence is required");
     requireText(ctx, data.levelOfStudy, "levelOfStudy", "Level of study is required");
-    requireText(
-      ctx,
-      data.hackathonsAttended,
-      "hackathonsAttended",
-      "Tell us how many hackathons you have attended",
-    );
-    requireText(ctx, data.resumeUrl, "resumeUrl", "Please upload a resume");
 
     if (!data.school.value) {
       ctx.addIssue({
@@ -153,14 +146,6 @@ export const HackerApplicationSubmissionSchema = applyObject.superRefine(
         code: z.ZodIssueCode.custom,
         message: "You must agree to the MLH Privacy Policy and Contest Terms.",
         path: ["mlhCheckbox2"],
-      });
-    }
-
-    if (!data.mlhCheckbox3) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "You must agree to the MLH email authorization.",
-        path: ["mlhCheckbox3"],
       });
     }
 

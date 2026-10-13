@@ -36,7 +36,7 @@ export function PublicTeamsBrowser({
 
   if (teams.length === 0) {
     return (
-      <div className="flex flex-col items-center rounded-2xl border border-dashed border-white/15 px-6 py-12 text-center">
+      <div className="flex flex-col items-center px-6 py-12 text-center">
         <Image src="/glacier-small.svg" alt="" width={120} height={72} />
         <p className="font-display mt-4 text-2xl text-white">
           No public teams yet
@@ -92,37 +92,38 @@ export function PublicTeamsBrowser({
       </div>
 
       {shown.length === 0 ? (
-        <p className="rounded-2xl border border-dashed border-white/15 px-6 py-10 text-center text-white/60">
+        <p className="border-y border-white/10 py-10 text-center text-white/60">
           No teams match. Try another word
           {openOnly ? " or include full teams" : ""}.
         </p>
       ) : (
-        <ul className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+        <ul className="divide-y divide-white/10 border-y border-white/10">
           {shown.map((team, index) => (
             <li
               key={team.id}
               style={{ animationDelay: `${Math.min(index, 8) * 40}ms` }}
-              className={cn(
-                "animate-in fill-mode-both fade-in slide-in-from-bottom-1 flex flex-col rounded-2xl border bg-white/[0.03] p-5 duration-300 motion-reduce:animate-none",
-                team.mine ? "border-sky-300/40" : "border-white/10",
-              )}
+              className="animate-in fill-mode-both fade-in grid gap-4 py-6 duration-300 motion-reduce:animate-none md:grid-cols-[minmax(0,1fr)_16rem] md:gap-10"
             >
-              <h2 className="font-display text-2xl break-words text-white">
-                {team.name}
-              </h2>
-              <SpotsMeter memberCount={team.memberCount} className="mt-2" />
-              <p
-                className={cn(
-                  "mt-4 line-clamp-4 text-sm",
-                  team.lookingFor ? "text-white/75" : "text-white/40 italic",
-                )}
-              >
-                {team.lookingFor || "No note on who they need yet."}
-              </p>
-              <p className="mt-4 truncate text-xs text-white/45">
-                With {team.memberFirstNames.join(", ")}
-              </p>
-              <div className="mt-auto pt-5">
+              <div className="min-w-0">
+                <div className="flex flex-wrap items-baseline gap-x-5 gap-y-1">
+                  <h2 className="font-display text-2xl break-words text-white">
+                    {team.name}
+                  </h2>
+                  <SpotsMeter memberCount={team.memberCount} />
+                </div>
+                <p
+                  className={cn(
+                    "mt-2 line-clamp-3 max-w-2xl",
+                    team.lookingFor ? "text-white/75" : "text-white/40 italic",
+                  )}
+                >
+                  {team.lookingFor || "No note on who they need yet."}
+                </p>
+                <p className="mt-2 truncate text-sm text-white/45">
+                  With {team.memberFirstNames.join(", ")}
+                </p>
+              </div>
+              <div className="md:pt-1">
                 <JoinRequestButton
                   teamName={team.name}
                   share={share}

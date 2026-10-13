@@ -21,11 +21,11 @@ export function MyRequests({
       <h2 id="my-requests-title" className="font-display text-2xl text-white">
         Your requests
       </h2>
-      <ul className="divide-y divide-white/[0.06] rounded-2xl border border-white/10 bg-white/[0.02]">
+      <ul className="divide-y divide-white/10 border-y border-white/10">
         {requests.map((request) => (
           <li
             key={request.id}
-            className="flex flex-wrap items-center justify-between gap-3 px-5 py-3"
+            className="flex flex-wrap items-center justify-between gap-3 py-4"
           >
             <div className="flex min-w-0 items-center gap-3">
               <span

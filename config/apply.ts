@@ -28,37 +28,25 @@ export function isApplyTrack(value: string): value is ApplyTrack {
 export const TRACKS: {
   id: ApplyTrack;
   title: string;
-  tag: string;
-  tagline: string;
   description: string;
-  includes: readonly string[];
 }[] = [
   {
     id: "quick",
     title: "Quick Apps",
-    tag: "Solo · fastest",
-    tagline: "Super cracked? Skip the essays.",
     description:
       "For technical folks who would rather let their work talk. Your basics, links, and resume, and you are done.",
-    includes: ["Basics", "Socials and resume", "MLH and travel"],
   },
   {
     id: "normal",
     title: "Normal Apps",
-    tag: "Solo · classic",
-    tagline: "Tell us your story.",
     description:
       "Everything in Quick Apps, plus two short answers so we get to know how you think and what you build.",
-    includes: ["Everything in Quick", "Two short answers"],
   },
   {
     id: "team",
     title: "Team Apps",
-    tag: `${MIN_TEAM_APPLY} to ${MAX_TEAM_SIZE} people`,
-    tagline: "Bringing your crew?",
     description:
       "Everything in Quick Apps, plus a team you make or join. Answer the team questions together.",
-    includes: ["Everything in Quick", "Make or join a team", "Team answers"],
   },
 ];
 

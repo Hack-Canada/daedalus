@@ -18,9 +18,8 @@ export default async function BrowseTeamsPage() {
 
   return (
     <TeamPage
-      eyebrow="Teams"
       title="Browse teams"
-      lede="Asking to join shares your name, school, country, level of study, hackathons, and social links with that team's owner, only after you agree."
+      lede="Asking to join shares your name, school, country, level of study, and social links with that team's owner, only after you agree."
       backHref="/apply/teams"
     >
       <PublicTeamsBrowser teams={teams} share={share} open={open} />

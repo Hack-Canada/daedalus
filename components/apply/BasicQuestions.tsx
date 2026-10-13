@@ -15,7 +15,6 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { CountrySelector } from "@/components/applications/CountrySelector";
-import { EmojiDisplay } from "@/components/applications/EmojiDisplay";
 
 const requiredMark = <span className="text-error"> *</span>;
 
@@ -178,68 +177,35 @@ export function BasicQuestions({
         label="Country of residence"
       />
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        <FormField
-          control={control}
-          name="levelOfStudy"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Current level of study{requiredMark}</FormLabel>
-              <FormControl>
-                <AdvancedSelect
-                  name="levelOfStudy"
-                  value={
-                    field.value ? { value: field.value, label: field.value } : null
-                  }
-                  onChange={field.onChange}
-                  loadOptions={(inputValue) =>
-                    Promise.resolve(
-                      levelsOfStudy
-                        .filter((level) =>
-                          level.toLowerCase().includes(inputValue.toLowerCase()),
-                        )
-                        .map((level) => ({ value: level, label: level })),
-                    )
-                  }
-                  placeholder="Select your level of study"
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={control}
-          name="hackathonsAttended"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>
-                How many hackathons have you attended?{requiredMark}
-              </FormLabel>
-              <div className="relative">
-                <FormControl>
-                  <Input
-                    {...field}
-                    required
-                    inputMode="numeric"
-                    pattern="[0-9]*"
-                    placeholder="0"
-                    onChange={(event) => {
-                      field.onChange(event.target.value.replace(/\D/g, ""));
-                    }}
-                  />
-                </FormControl>
-                {field.value && (
-                  <div className="pointer-events-none absolute top-2 right-3 md:top-1.5 md:right-8">
-                    <EmojiDisplay count={Number.parseInt(field.value, 10)} />
-                  </div>
-                )}
-              </div>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-      </div>
+      <FormField
+        control={control}
+        name="levelOfStudy"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Current level of study{requiredMark}</FormLabel>
+            <FormControl>
+              <AdvancedSelect
+                name="levelOfStudy"
+                value={
+                  field.value ? { value: field.value, label: field.value } : null
+                }
+                onChange={field.onChange}
+                loadOptions={(inputValue) =>
+                  Promise.resolve(
+                    levelsOfStudy
+                      .filter((level) =>
+                        level.toLowerCase().includes(inputValue.toLowerCase()),
+                      )
+                      .map((level) => ({ value: level, label: level })),
+                  )
+                }
+                placeholder="Select your level of study"
+              />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
     </fieldset>
   );
 }

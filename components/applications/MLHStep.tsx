@@ -113,7 +113,6 @@ export function MLHStep({ control }: MLHStepProps) {
               <FormLabel>
                 I authorize MLH to send me occasional emails about relevant
                 events, career opportunities, and community announcements.
-                <span className="text-error">*</span>
               </FormLabel>
             </div>
             <FormMessage />

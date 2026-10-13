@@ -89,9 +89,11 @@ export async function POST(
       }
     }
 
-    let resumeUrl: string;
+    let resumeUrl = "";
     try {
-      resumeUrl = await finalizeResume(currentUser.id, data.resumeUrl);
+      if (data.resumeUrl) {
+        resumeUrl = await finalizeResume(currentUser.id, data.resumeUrl);
+      }
     } catch (error) {
       console.error("Resume finalize error:", error);
       return NextResponse.json({

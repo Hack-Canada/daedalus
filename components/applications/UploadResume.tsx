@@ -35,7 +35,7 @@ export function UploadResume({ control, watch }: UploadResumeProps) {
         render={({ field }) => (
           <FormItem>
             <FormLabel>
-              Resume<span className="text-error">*</span>
+              Resume
             </FormLabel>
             {!resumeUrl && (
               <button

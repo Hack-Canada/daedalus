@@ -5,10 +5,8 @@ export const SHARE_FIELDS: { key: keyof SharedProfile; label: string }[] = [
   { key: "school", label: "School" },
   { key: "country", label: "Country" },
   { key: "levelOfStudy", label: "Level of study" },
-  { key: "hackathonsAttended", label: "Hackathons attended" },
   { key: "linkedin", label: "LinkedIn" },
   { key: "github", label: "GitHub" },
-  { key: "xUrl", label: "X" },
   { key: "personalWebsite", label: "Portfolio or other links" },
 ];
 

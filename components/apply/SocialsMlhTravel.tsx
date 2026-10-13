@@ -90,24 +90,6 @@ export function SocialsMlhTravel({
             </FormItem>
           )}
         />
-        <FormField
-          control={control}
-          name="xUrl"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>X</FormLabel>
-              <FormControl>
-                <Input
-                  {...field}
-                  type="url"
-                  inputMode="url"
-                  placeholder="https://x.com/username"
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
 
         <UploadResume control={control} watch={watch} />
       </fieldset>

@@ -4,14 +4,14 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import confetti from "canvas-confetti";
 import { AnimatePresence, motion, MotionConfig } from "framer-motion";
-import { ArrowRight, Plus, Users } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 
 import { ApplyTrack, MAX_TEAM_SIZE, TRACKS } from "@/config/apply";
 import { MyTeamView } from "@/lib/apply/team-types";
 
 import { ApplyMark } from "./ApplyMark";
 
-const THANKS_MS = 2600;
+const THANKS_MS = 1000;
 const spring = {
   type: "spring",
   stiffness: 110,
@@ -27,22 +27,8 @@ const fadeUp = {
   },
 } as const;
 
-const CHOICES = [
-  {
-    href: "/apply/teams/new",
-    title: "Make a team",
-    body: `Name it, say what you are looking for, and share a link. Teams have up to ${MAX_TEAM_SIZE} people.`,
-    Icon: Plus,
-    accent: "bg-[#85B7F1]/15 text-[#85B7F1] ring-[#85B7F1]/25",
-  },
-  {
-    href: "/apply/teams/browse",
-    title: "Join a team",
-    body: "Browse public teams. The owner sees the details you agree to share, then accepts or declines.",
-    Icon: Users,
-    accent: "bg-white/10 text-white ring-white/20",
-  },
-] as const;
+const choiceLink =
+  "font-display text-3xl text-white underline decoration-[#85B7F1]/40 decoration-2 underline-offset-[10px] transition-colors hover:decoration-[#85B7F1] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white md:text-4xl";
 
 function burst() {
   const base = {
@@ -95,15 +81,16 @@ export function ApplySubmitted({
   );
   const title =
     TRACKS.find((item) => item.id === track)?.title ?? "your application";
-  const solo = track !== "team";
+  const askTeam = stage === "teams" && !team;
+  const heading = askTeam
+    ? "Want to hack with friends?"
+    : `Thank you${firstName ? `, ${firstName}` : ""}!`;
   const subtitle =
     stage === "thanks"
       ? `You applied with ${title}. Hang tight while we set up your next step.`
       : team
         ? `You applied with ${title}. You are on ${team.name}.`
-        : solo
-          ? `You applied with ${title}. We review on a rolling basis and will email you.`
-          : `You applied with ${title}. Teams are optional and hold up to ${MAX_TEAM_SIZE} people.`;
+        : `Optional. Teams hold up to ${MAX_TEAM_SIZE} people.`;
 
   useEffect(() => {
     if (!celebrate) return;
@@ -170,15 +157,19 @@ export function ApplySubmitted({
               </svg>
             </motion.div>
           </motion.div>
-          <motion.h1
-            layout="position"
-            transition={spring}
-            initial={celebrate ? { opacity: 0, y: 16 } : false}
-            animate={{ opacity: 1, y: 0 }}
-            className="font-display mt-6 text-4xl font-semibold text-white md:text-5xl"
-          >
-            Thank you{firstName ? `, ${firstName}` : ""}!
-          </motion.h1>
+          <AnimatePresence mode="wait" initial={false}>
+            <motion.h1
+              key={heading}
+              layout="position"
+              transition={spring}
+              initial={celebrate ? { opacity: 0, y: 16 } : false}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              className="font-display mt-6 text-4xl font-semibold text-balance text-white md:text-5xl"
+            >
+              {heading}
+            </motion.h1>
+          </AnimatePresence>
           <AnimatePresence mode="wait" initial={false}>
             <motion.p
               key={subtitle}
@@ -203,7 +194,7 @@ export function ApplySubmitted({
                 opacity: 1,
                 transition: { delay: celebrate ? 0.35 : 0 },
               }}
-              className="relative mt-12 w-full max-w-3xl"
+              className="relative mt-10 w-full max-w-3xl"
             >
               {team ? (
                 <motion.div variants={fadeUp} initial="hidden" animate="show">
@@ -224,79 +215,30 @@ export function ApplySubmitted({
                     <ArrowRight className="size-5 text-white/70" aria-hidden />
                   </Link>
                 </motion.div>
-              ) : solo ? (
+              ) : (
                 <motion.div
                   variants={fadeUp}
                   initial="hidden"
                   animate="show"
-                  className="mx-auto max-w-xl rounded-2xl border border-white/10 bg-white/[0.03] p-5"
+                  className="flex flex-col items-center gap-4 sm:flex-row sm:justify-center sm:gap-8"
                 >
-                  <p className="text-sm text-white/60">
-                    <span className="font-medium text-white/85">
-                      Want to hack with friends?
-                    </span>{" "}
-                    Optional. Teams hold up to {MAX_TEAM_SIZE} people.
-                  </p>
-                  <div className="mt-4 grid gap-2 sm:grid-cols-2">
-                    {CHOICES.map(({ href, title: label, Icon, accent }) => (
-                      <Link
-                        key={href}
-                        href={href}
-                        className="group flex min-h-11 items-center gap-3 rounded-xl border border-white/10 px-3 py-2.5 text-sm font-medium text-white/85 transition-colors hover:border-white/25 hover:bg-white/[0.05] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
-                      >
-                        <span
-                          className={`flex size-8 items-center justify-center rounded-lg ring-1 ${accent}`}
-                        >
-                          <Icon className="size-4" aria-hidden />
-                        </span>
-                        {label}
-                        <ArrowRight
-                          className="ml-auto size-4 text-white/50 transition-transform group-hover:translate-x-0.5 group-hover:text-white/80"
-                          aria-hidden
-                        />
-                      </Link>
-                    ))}
-                  </div>
-                </motion.div>
-              ) : (
-                <motion.div
-                  initial="hidden"
-                  animate="show"
-                  variants={{ show: { transition: { staggerChildren: 0.1 } } }}
-                  className="grid gap-4 md:grid-cols-2"
-                >
-                  {CHOICES.map(({ href, title: label, body, Icon, accent }) => (
-                    <motion.div key={href} variants={fadeUp}>
-                      <Link
-                        href={href}
-                        className="group flex h-full min-h-11 flex-col items-start gap-4 rounded-2xl border border-white/10 bg-white/[0.04] p-6 transition-colors hover:border-white/25 hover:bg-white/[0.07] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white md:p-8"
-                      >
-                        <span
-                          className={`flex size-12 items-center justify-center rounded-xl ring-1 ${accent}`}
-                        >
-                          <Icon className="size-6" aria-hidden />
-                        </span>
-                        <span className="font-display text-2xl font-semibold text-white">
-                          {label}
-                        </span>
-                        <span className="text-white/60">{body}</span>
-                        <span className="mt-auto inline-flex items-center gap-1 pt-2 text-sm font-medium text-white/80">
-                          Continue
-                          <ArrowRight
-                            className="size-4 transition-transform group-hover:translate-x-1"
-                            aria-hidden
-                          />
-                        </span>
-                      </Link>
-                    </motion.div>
-                  ))}
+                  <Link href="/apply/teams/new" className={choiceLink}>
+                    Make a team
+                  </Link>
+                  <span className="text-sm text-white/40">or</span>
+                  <Link href="/apply/teams/browse" className={choiceLink}>
+                    Join a team
+                  </Link>
                 </motion.div>
               )}
-              <p className="mt-10 text-center text-sm text-white/50">
-                {!solo && "Teams are optional. "}
+              <p className="mx-auto mt-16 max-w-md text-center text-sm leading-relaxed text-white/55">
+                {team
+                  ? "Your application is in. "
+                  : "If not, you're all set. Your application is in and there's nothing else to do. "}
+                Results come out about a week after applications close :)
                 <Link
                   href="/applications/hacker/review"
-                  className="text-white/80 underline underline-offset-4 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-white"
+                  className="mx-auto mt-3 block w-fit text-white/80 underline underline-offset-4 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-white"
                 >
                   Review your answers
                 </Link>

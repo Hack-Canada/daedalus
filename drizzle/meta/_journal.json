@@ -50,6 +50,13 @@
       "when": 1791780573738,
       "tag": "0006_team-answers-lock",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1791914030338,
+      "tag": "0007_drop-unused-application-columns",
+      "breakpoints": true
     }
   ]
 }

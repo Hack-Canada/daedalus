@@ -21,9 +21,6 @@ export function ReviewApplication({ application, team }: ReviewApplicationProps)
     TRACKS.find((track) => track.id === application.applicationType)?.title ??
     "Hacker application";
   const mine = team?.members.find((member) => member.isMe);
-  const legacy =
-    !application.applicationType &&
-    (application.shortAnswer1 || application.shortAnswer2 || application.shortAnswer3);
 
   return (
     <div className="space-y-8 xl:space-y-12">
@@ -117,14 +114,6 @@ export function ReviewApplication({ application, team }: ReviewApplicationProps)
             value={application.shortAnswer2}
             isLongText
           />
-        </ReviewSection>
-      )}
-
-      {legacy && (
-        <ReviewSection title="Earlier short answers" columns="1">
-          <Field label="Short answer 1" value={application.shortAnswer1} isLongText />
-          <Field label="Short answer 2" value={application.shortAnswer2} isLongText />
-          <Field label="Short answer 3" value={application.shortAnswer3} isLongText />
         </ReviewSection>
       )}
 

@@ -16,6 +16,9 @@ import { Textarea } from "@/components/ui/textarea";
 
 import { WordCount } from "./WordCount";
 
+const answerBox =
+  "min-h-48 rounded-xl px-5 py-4 text-lg leading-relaxed md:text-lg";
+
 const requiredMark = <span className="text-error"> *</span>;
 
 export function NormalQuestions({
@@ -24,24 +27,28 @@ export function NormalQuestions({
   control: Control<THackerApplicationSubmission>;
 }) {
   return (
-    <fieldset className="space-y-6">
-      <legend className="mb-4 font-display text-2xl font-semibold text-white">
+    <fieldset className="space-y-10">
+      <legend className="font-display mb-6 text-3xl font-semibold text-white md:text-4xl">
         Normal application questions
       </legend>
       <FormField
         control={control}
         name="normalAnswer1"
         render={({ field }) => (
-          <FormItem>
-            <FormLabel>
+          <FormItem className="space-y-3">
+            <FormLabel className="block text-lg leading-relaxed font-medium text-white md:text-xl">
               {NORMAL_PROMPTS.normalAnswer1}
               {requiredMark}
             </FormLabel>
             <FormControl>
-              <Textarea {...field} required rows={5} />
+              <Textarea {...field} required rows={7} className={answerBox} />
             </FormControl>
             <FormDescription>
-              <WordCount value={field.value} limit={NORMAL_WORD_LIMIT} />
+              <WordCount
+                value={field.value}
+                limit={NORMAL_WORD_LIMIT}
+                className="text-base"
+              />
             </FormDescription>
             <FormMessage />
           </FormItem>
@@ -51,16 +58,20 @@ export function NormalQuestions({
         control={control}
         name="normalAnswer2"
         render={({ field }) => (
-          <FormItem>
-            <FormLabel>
+          <FormItem className="space-y-3">
+            <FormLabel className="block text-lg leading-relaxed font-medium text-white md:text-xl">
               {NORMAL_PROMPTS.normalAnswer2}
               {requiredMark}
             </FormLabel>
             <FormControl>
-              <Textarea {...field} required rows={6} />
+              <Textarea {...field} required rows={9} className={answerBox} />
             </FormControl>
             <FormDescription>
-              <WordCount value={field.value} limit={NORMAL_WORD_LIMIT} />
+              <WordCount
+                value={field.value}
+                limit={NORMAL_WORD_LIMIT}
+                className="text-base"
+              />
             </FormDescription>
             <FormMessage />
           </FormItem>

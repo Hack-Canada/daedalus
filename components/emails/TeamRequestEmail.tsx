@@ -1,13 +1,4 @@
-import {
-  Body,
-  Button,
-  Container,
-  Head,
-  Heading,
-  Html,
-  Preview,
-  Text,
-} from "@react-email/components";
+import { EmailShell, paragraph } from "./EmailShell";
 
 type Props = {
   ownerName: string;
@@ -22,43 +13,24 @@ const TeamRequestEmail = ({
   teamName,
   reviewUrl,
 }: Props) => (
-  <Html>
-    <Head />
-    <Preview>
-      {requesterName} asked to join {teamName}
-    </Preview>
-    <Body
-      style={{ backgroundColor: "#F5F3FF", fontFamily: "Arial, sans-serif" }}
-    >
-      <Container
-        style={{
-          backgroundColor: "#ffffff",
-          padding: "32px",
-          borderRadius: "12px",
-        }}
-      >
-        <Heading style={{ color: "#5B21B6", fontSize: "24px" }}>
-          New team request
-        </Heading>
-        <Text>Hi {ownerName},</Text>
-        <Text>
-          {requesterName} asked to join {teamName}. Open your team page to see
-          the details they agreed to share, then accept or decline.
-        </Text>
-        <Button
-          href={reviewUrl}
-          style={{
-            backgroundColor: "#5B21B6",
-            color: "#ffffff",
-            padding: "12px 20px",
-            borderRadius: "8px",
-          }}
-        >
-          Review request
-        </Button>
-      </Container>
-    </Body>
-  </Html>
+  <EmailShell
+    preview={`${requesterName} asked to join ${teamName}`}
+    scene="request"
+    title={`${requesterName} wants in!`}
+    action={{ href: reviewUrl, label: "Review the request" }}
+    footnote={`You're getting this because you own ${teamName}.`}
+  >
+    <p style={paragraph}>Hi {ownerName},</p>
+    <p style={paragraph}>
+      {requesterName} asked to join <strong>{teamName}</strong>. Your team page
+      shows what they wrote about themselves, so you can get a feel for them
+      before you accept or decline.
+    </p>
+    <p style={paragraph}>
+      They&apos;ll join the moment you accept. If it&apos;s not a fit, just
+      decline.
+    </p>
+  </EmailShell>
 );
 
 export default TeamRequestEmail;

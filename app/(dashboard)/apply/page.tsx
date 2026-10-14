@@ -4,7 +4,7 @@ import { getCurrentUser } from "@/auth";
 
 import { isApplyTrack } from "@/config/apply";
 import { getHackerApplicationByUserId } from "@/lib/db/queries/application";
-import { getTeamForUser } from "@/lib/db/queries/team";
+import { getTeamForUser, listMyRequests } from "@/lib/db/queries/team";
 import { getPhaseState } from "@/lib/phase";
 import { ApplyMark } from "@/components/apply/ApplyMark";
 import { ApplyPicker } from "@/components/apply/ApplyPicker";
@@ -58,7 +58,10 @@ export default async function ApplyPage({
   }
 
   if (submitted) {
-    const team = await getTeamForUser(user.id);
+    const [team, requests] = await Promise.all([
+      getTeamForUser(user.id),
+      listMyRequests(user.id),
+    ]);
     const track = application?.applicationType;
     return (
       <ApplySubmitted
@@ -66,6 +69,7 @@ export default async function ApplyPage({
         firstName={application?.firstName || null}
         celebrate={(await searchParams).submitted === "1"}
         team={team}
+        requests={requests}
         open={open}
       />
     );

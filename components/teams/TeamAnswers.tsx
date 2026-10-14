@@ -17,6 +17,11 @@ import { WordCount } from "@/components/apply/WordCount";
 
 import { postTeam, useTeamAction } from "./use-team-action";
 
+const promptLabel = "flex gap-3 text-lg leading-relaxed text-white";
+const promptNumber =
+  "font-display mt-0.5 grid size-8 shrink-0 place-items-center rounded-full bg-[#85B7F1] text-base text-[#043251]";
+const answerBox = "rounded-xl px-5 py-4 text-lg leading-relaxed";
+
 function editedLabel(iso: string) {
   return new Date(iso).toLocaleString("en-US", {
     timeZone: "America/Toronto",
@@ -53,25 +58,23 @@ export function TeamAnswers({
   const canEdit = open && !locked;
 
   return (
-    <section
-      aria-labelledby="team-answers-title"
-      className="space-y-7 rounded-2xl border border-white/10 bg-white/[0.02] p-5 md:p-6"
-    >
+    <section aria-labelledby="team-answers-title" className="space-y-10">
       <div className="space-y-4">
         <div className="space-y-1">
           <h2
             id="team-answers-title"
-            className="font-display flex items-center gap-2 text-2xl text-white"
+            className="font-display flex items-center gap-3 text-3xl text-white md:text-4xl"
           >
             Team answers
             {locked && (
-              <span className="inline-flex items-center gap-1 rounded-full bg-amber-300/15 px-2 py-0.5 font-sans text-xs text-amber-100">
-                <Lock className="size-3" aria-hidden />
-                Locked
-              </span>
+              <Lock
+                className="size-5 text-white/40"
+                aria-label="Locked"
+                role="img"
+              />
             )}
           </h2>
-          <p className="text-sm text-white/55">
+          <p className="text-base text-white/60">
             Your Mars answer is yours. The shared answer is one for the whole
             team.
           </p>
@@ -79,11 +82,14 @@ export function TeamAnswers({
         {team.isOwner ? (
           <label
             htmlFor="lock-answers"
-            className="flex min-h-11 items-center justify-between gap-4 rounded-xl bg-white/[0.03] px-4 py-2"
+            className="flex min-h-11 items-center justify-between gap-4 rounded-2xl bg-white/[0.04] px-5 py-3.5"
           >
-            <span className="text-sm text-white">
+            <span className="text-white">
               Lock answers
-              <span id="lock-answers-why" className="block text-white/45">
+              <span
+                id="lock-answers-why"
+                className="block text-sm text-white/50"
+              >
                 Stops teammates from editing. Unlock any time before
                 applications close.
               </span>
@@ -109,25 +115,32 @@ export function TeamAnswers({
         )}
       </div>
 
-      <div className="space-y-2">
-        <label htmlFor="mars-answer" className="block text-white">
+      <div className="space-y-3">
+        <label htmlFor="mars-answer" className={promptLabel}>
+          <span className={promptNumber}>1</span>
           {TEAM_PROMPTS.mars}
         </label>
         <Textarea
           id="mars-answer"
           value={mars}
           disabled={!canEdit || pending}
-          rows={4}
+          rows={5}
+          className={answerBox}
           aria-describedby="mars-count"
           onChange={(event) => setMars(event.target.value)}
         />
         <div className="flex min-h-11 items-center justify-between gap-3">
-          <WordCount id="mars-count" value={mars} limit={MARS_WORD_LIMIT} />
+          <WordCount
+            id="mars-count"
+            value={mars}
+            limit={MARS_WORD_LIMIT}
+            className="text-base"
+          />
           {canEdit && (
             <Button
               type="button"
               variant={marsDirty ? "default" : "outline"}
-              className="min-h-11"
+              className="min-h-11 px-6"
               disabled={pending || marsOver || !marsDirty}
               onClick={() =>
                 void run(() =>
@@ -141,11 +154,12 @@ export function TeamAnswers({
         </div>
       </div>
 
-      <div className="space-y-2">
-        <label htmlFor="team-essay" className="block text-white">
+      <div className="space-y-3">
+        <label htmlFor="team-essay" className={promptLabel}>
+          <span className={promptNumber}>2</span>
           {TEAM_PROMPTS.essay}
         </label>
-        <p id="essay-hint" className="text-sm text-white/50">
+        <p id="essay-hint" className="pl-11 text-white/50">
           One answer for the whole team.
           {team.essayUpdatedAt &&
             ` Last edited by ${team.essayUpdatedByName || "a teammate"}, ${editedLabel(team.essayUpdatedAt)}.`}
@@ -154,17 +168,23 @@ export function TeamAnswers({
           id="team-essay"
           value={essay}
           disabled={!canEdit || pending}
-          rows={6}
+          rows={8}
+          className={answerBox}
           aria-describedby="essay-hint essay-count"
           onChange={(event) => setEssay(event.target.value)}
         />
         <div className="flex min-h-11 items-center justify-between gap-3">
-          <WordCount id="essay-count" value={essay} limit={ESSAY_WORD_LIMIT} />
+          <WordCount
+            id="essay-count"
+            value={essay}
+            limit={ESSAY_WORD_LIMIT}
+            className="text-base"
+          />
           {canEdit && (
             <Button
               type="button"
               variant={essayDirty ? "default" : "outline"}
-              className="min-h-11"
+              className="min-h-11 px-6"
               disabled={pending || essayOver || !essayDirty}
               onClick={() =>
                 void run(() => postTeam("/api/teams/essay", { essay }))

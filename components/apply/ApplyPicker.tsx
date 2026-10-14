@@ -16,13 +16,12 @@ type Track = (typeof TRACKS)[number];
 // Day, dusk, night: the hackcanada.org sky (#85B7F1) down to its navy (#043251).
 const THEMES: Record<
   ApplyTrack,
-  { panel: string; muted: string; chip: string; button: string; ring: string }
+  { panel: string; muted: string; button: string; ring: string }
 > = {
   quick: {
     panel:
       "bg-linear-to-b from-[#c4defb] via-[#9cc5f4] to-[#6fa6ea] text-[#043251]",
     muted: "text-[#043251]/75",
-    chip: "bg-white/55 ring-white/70",
     button: "bg-[#043251] text-white",
     ring: "focus-visible:outline-[#043251]",
   },
@@ -30,7 +29,6 @@ const THEMES: Record<
     panel:
       "bg-linear-to-b from-[#5f9be2] via-[#3c7bcc] to-[#1c58a1] text-white",
     muted: "text-white/80",
-    chip: "bg-white/15 ring-white/25",
     button: "bg-white text-[#043251]",
     ring: "focus-visible:outline-white",
   },
@@ -38,7 +36,6 @@ const THEMES: Record<
     panel:
       "bg-linear-to-b from-[#0d426d] via-[#062f52] to-[#031b31] text-white",
     muted: "text-white/75",
-    chip: "bg-white/10 ring-white/15",
     button: "bg-[#85B7F1] text-[#043251]",
     ring: "focus-visible:outline-[#85B7F1]",
   },
@@ -159,11 +156,7 @@ export function ApplyPicker({
                 onClick={() => void openTrack(track.id)}
                 className={`${linkClass} disabled:cursor-wait`}
               >
-                <PanelCopy
-                  track={track}
-                  action={action}
-                  isCurrent={false}
-                />
+                <PanelCopy track={track} action={action} isCurrent={false} />
               </button>
             )}
           </section>
@@ -186,14 +179,8 @@ function PanelCopy({
   return (
     <>
       {isCurrent && (
-        <span
-          className={`inline-flex w-fit items-center gap-1.5 rounded-full px-3 py-1 text-sm font-medium ring-1 backdrop-blur-sm ${theme.chip}`}
-        >
-          <span className="relative flex size-2">
-            <span className="absolute inline-flex size-full animate-ping rounded-full bg-emerald-400 opacity-75 motion-reduce:hidden" />
-            <span className="relative inline-flex size-2 rounded-full bg-emerald-400" />
-          </span>
-          Your draft
+        <span className={`w-fit text-sm font-medium ${theme.muted}`}>
+          Draft saved
         </span>
       )}
 

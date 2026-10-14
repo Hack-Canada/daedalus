@@ -31,7 +31,7 @@ export function SocialsMlhTravel({
   return (
     <div className="space-y-10">
       <fieldset className="space-y-4">
-        <legend className="font-display mb-4 text-2xl font-semibold text-white">
+        <legend className="font-display mb-6 text-3xl font-semibold text-white md:text-4xl">
           Socials
         </legend>
 
@@ -95,14 +95,14 @@ export function SocialsMlhTravel({
       </fieldset>
 
       <fieldset className="space-y-4">
-        <legend className="font-display mb-4 text-2xl font-semibold text-white">
+        <legend className="font-display mb-6 text-3xl font-semibold text-white md:text-4xl">
           MLH agreements
         </legend>
         <MLHStep control={control} />
       </fieldset>
 
       <fieldset className="space-y-4">
-        <legend className="font-display mb-4 text-2xl font-semibold text-white">
+        <legend className="font-display mb-6 text-3xl font-semibold text-white md:text-4xl">
           Travel
         </legend>
         <FormField

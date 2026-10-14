@@ -1,13 +1,4 @@
-import {
-  Body,
-  Button,
-  Container,
-  Head,
-  Heading,
-  Html,
-  Preview,
-  Text,
-} from "@react-email/components";
+import { EmailShell, paragraph } from "./EmailShell";
 
 type Props = {
   name: string;
@@ -16,41 +7,23 @@ type Props = {
 };
 
 const TeamAcceptedEmail = ({ name, teamName, teamUrl }: Props) => (
-  <Html>
-    <Head />
-    <Preview>You are on {teamName}</Preview>
-    <Body
-      style={{ backgroundColor: "#F5F3FF", fontFamily: "Arial, sans-serif" }}
-    >
-      <Container
-        style={{
-          backgroundColor: "#ffffff",
-          padding: "32px",
-          borderRadius: "12px",
-        }}
-      >
-        <Heading style={{ color: "#5B21B6", fontSize: "24px" }}>
-          You are on the team
-        </Heading>
-        <Text>Hi {name},</Text>
-        <Text>
-          {teamName} accepted your request. You can write your team answers from
-          your team page.
-        </Text>
-        <Button
-          href={teamUrl}
-          style={{
-            backgroundColor: "#5B21B6",
-            color: "#ffffff",
-            padding: "12px 20px",
-            borderRadius: "8px",
-          }}
-        >
-          Open your team
-        </Button>
-      </Container>
-    </Body>
-  </Html>
+  <EmailShell
+    preview={`You're on ${teamName}`}
+    scene="accepted"
+    title={`Welcome aboard ${teamName}!`}
+    action={{ href: teamUrl, label: "Meet your team" }}
+    footnote={`You're getting this because you asked to join ${teamName}.`}
+  >
+    <p style={paragraph}>Hi {name},</p>
+    <p style={paragraph}>
+      Good news: <strong>{teamName}</strong> accepted your request, so
+      you&apos;re officially on the team.
+    </p>
+    <p style={paragraph}>
+      Next up, write your Mars answer and help your team with the shared answer
+      before applications close.
+    </p>
+  </EmailShell>
 );
 
 export default TeamAcceptedEmail;

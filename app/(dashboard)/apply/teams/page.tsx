@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 import { Globe, Lock } from "lucide-react";
 
 import { MAX_TEAM_SIZE, MIN_TEAM_APPLY } from "@/config/apply";
 import { loadTeamPage } from "@/lib/apply/team-page";
 import { getTeamForUser, listMyRequests } from "@/lib/db/queries/team";
 import { MyRequests } from "@/components/teams/MyRequests";
-import { SpotsMeter } from "@/components/teams/SpotsMeter";
 import { TeamChoices } from "@/components/teams/TeamChoices";
 import { TeamHowItWorks } from "@/components/teams/TeamHowItWorks";
 import { TeamManage } from "@/components/teams/TeamManage";
@@ -16,7 +16,8 @@ export const metadata: Metadata = {
 };
 
 export default async function TeamsPage() {
-  const { userId, open, backHref } = await loadTeamPage("/apply/teams");
+  const { userId, open, backHref, submitted } =
+    await loadTeamPage("/apply/teams");
   const team = await getTeamForUser(userId);
 
   if (team) {
@@ -27,24 +28,20 @@ export default async function TeamsPage() {
         title={team.name}
         backHref={backHref}
         meta={
-          <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
-            <SpotsMeter memberCount={team.members.length} />
-            <span className="inline-flex items-center gap-1.5 text-sm text-white/60">
-              <Visibility className="size-3.5" aria-hidden />
-              {team.isPublic ? "Listed publicly" : "Link only"}
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-white/60">
+            <span>
+              {ready
+                ? "Ready to apply as a team"
+                : `Needs ${MIN_TEAM_APPLY - team.members.length} more to apply as a team`}
             </span>
-            <span className="inline-flex items-center gap-2 text-sm text-white/60">
-              <span
-                className={`size-1.5 rounded-full ${ready ? "bg-emerald-400" : "bg-amber-300"}`}
-                aria-hidden
-              />
-              <span>
-                {ready
-                  ? "Ready to apply as a team"
-                  : `Needs ${MIN_TEAM_APPLY - team.members.length} more to apply as a team`}
-              </span>
-              <TeamHowItWorks />
+            <span aria-hidden className="text-white/25">
+              ·
             </span>
+            <span className="inline-flex items-center gap-1.5">
+              <Visibility className="size-4" aria-hidden />
+              {team.isPublic ? "Public" : "Link only"}
+            </span>
+            <TeamHowItWorks />
           </div>
         }
       >
@@ -52,6 +49,9 @@ export default async function TeamsPage() {
       </TeamPage>
     );
   }
+
+  // After submitting, /apply shows these same choices.
+  if (submitted) redirect("/apply");
 
   const requests = await listMyRequests(userId);
   return (

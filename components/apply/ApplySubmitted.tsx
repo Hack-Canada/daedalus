@@ -4,31 +4,17 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import confetti from "canvas-confetti";
 import { AnimatePresence, motion, MotionConfig } from "framer-motion";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Check } from "lucide-react";
 
 import { ApplyTrack, MAX_TEAM_SIZE, TRACKS } from "@/config/apply";
-import { MyTeamView } from "@/lib/apply/team-types";
+import { MyRequestView, MyTeamView } from "@/lib/apply/team-types";
+import { MyRequests } from "@/components/teams/MyRequests";
+import { TeamChoices } from "@/components/teams/TeamChoices";
+import { TeamPage } from "@/components/teams/TeamPage";
 
 import { ApplyMark } from "./ApplyMark";
 
 const THANKS_MS = 1000;
-const spring = {
-  type: "spring",
-  stiffness: 110,
-  damping: 20,
-  mass: 0.9,
-} as const;
-const fadeUp = {
-  hidden: { opacity: 0, y: 24 },
-  show: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] },
-  },
-} as const;
-
-const choiceLink =
-  "font-display text-3xl text-white underline decoration-[#85B7F1]/40 decoration-2 underline-offset-[10px] transition-colors hover:decoration-[#85B7F1] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white md:text-4xl";
 
 function burst() {
   const base = {
@@ -68,12 +54,14 @@ export function ApplySubmitted({
   firstName,
   celebrate,
   team,
+  requests,
   open,
 }: {
   track: ApplyTrack | null;
   firstName: string | null;
   celebrate: boolean;
   team: MyTeamView | null;
+  requests: MyRequestView[];
   open: boolean;
 }) {
   const [stage, setStage] = useState<"thanks" | "teams">(
@@ -81,16 +69,6 @@ export function ApplySubmitted({
   );
   const title =
     TRACKS.find((item) => item.id === track)?.title ?? "your application";
-  const askTeam = stage === "teams" && !team;
-  const heading = askTeam
-    ? "Want to hack with friends?"
-    : `Thank you${firstName ? `, ${firstName}` : ""}!`;
-  const subtitle =
-    stage === "thanks"
-      ? `You applied with ${title}. Hang tight while we set up your next step.`
-      : team
-        ? `You applied with ${title}. You are on ${team.name}.`
-        : `Optional. Teams hold up to ${MAX_TEAM_SIZE} people.`;
 
   useEffect(() => {
     if (!celebrate) return;
@@ -105,30 +83,16 @@ export function ApplySubmitted({
 
   return (
     <MotionConfig reducedMotion="user">
-      <main
-        className={`relative flex min-h-dvh w-full flex-col items-center overflow-x-clip px-6 ${
-          stage === "thanks"
-            ? "justify-center"
-            : "justify-start pt-20 pb-20 md:pt-24"
-        }`}
-      >
-        {open && <ApplyMark />}
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-x-0 top-0 h-[70vh] bg-[radial-gradient(ellipse_at_top,rgba(133,183,241,0.16),transparent_65%)]"
-        />
-        <motion.header
-          layout
-          transition={spring}
-          className="relative flex max-w-2xl flex-col items-center text-center"
-        >
-          <motion.div
-            layout
-            transition={spring}
-            className={stage === "thanks" ? "size-24" : "size-14"}
+      <AnimatePresence mode="wait" initial={false}>
+        {stage === "thanks" ? (
+          <motion.main
+            key="thanks"
+            exit={{ opacity: 0, y: -12, transition: { duration: 0.25 } }}
+            className="flex min-h-dvh flex-col items-center justify-center px-6 text-center"
           >
-            <motion.div
-              initial={celebrate ? { scale: 0, rotate: -30 } : false}
+            {open && <ApplyMark />}
+            <motion.span
+              initial={{ scale: 0, rotate: -30 }}
               animate={{ scale: 1, rotate: 0 }}
               transition={{
                 type: "spring",
@@ -136,7 +100,7 @@ export function ApplySubmitted({
                 damping: 14,
                 delay: 0.1,
               }}
-              className="flex size-full items-center justify-center rounded-full bg-emerald-400/15 text-emerald-300 ring-1 ring-emerald-300/30"
+              className="grid size-24 place-items-center rounded-full bg-emerald-400/15 text-emerald-300 ring-1 ring-emerald-300/30"
             >
               <svg
                 viewBox="0 0 24 24"
@@ -150,103 +114,84 @@ export function ApplySubmitted({
               >
                 <motion.path
                   d="M5 12.5l4.5 4.5L19 7.5"
-                  initial={celebrate ? { pathLength: 0 } : false}
+                  initial={{ pathLength: 0 }}
                   animate={{ pathLength: 1 }}
                   transition={{ duration: 0.6, delay: 0.35, ease: "easeOut" }}
                 />
               </svg>
-            </motion.div>
-          </motion.div>
-          <AnimatePresence mode="wait" initial={false}>
+            </motion.span>
             <motion.h1
-              key={heading}
-              layout="position"
-              transition={spring}
-              initial={celebrate ? { opacity: 0, y: 16 } : false}
+              initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -8 }}
               className="font-display mt-6 text-4xl font-semibold text-balance text-white md:text-5xl"
             >
-              {heading}
+              Thank you{firstName ? `, ${firstName}` : ""}!
             </motion.h1>
-          </AnimatePresence>
-          <AnimatePresence mode="wait" initial={false}>
-            <motion.p
-              key={subtitle}
-              layout="position"
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -8 }}
-              transition={{ duration: 0.3 }}
-              aria-live="polite"
-              className="mt-3 text-base text-white/65 md:text-lg"
+            <p className="mt-3 text-base text-white/65 md:text-lg">
+              You applied with {title}.
+            </p>
+          </motion.main>
+        ) : (
+          <motion.div
+            key="teams"
+            initial={celebrate ? { opacity: 0, y: 16 } : false}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+          >
+            <TeamPage
+              title={team ? "You're all set" : "Find your people"}
+              lede={
+                team
+                  ? `Your ${title} application is in and you're on ${team.name}. Results come out about a week after applications close.`
+                  : `Your ${title} application is in. Teams are optional and hold up to ${MAX_TEAM_SIZE} people. Start one, ask to join one, or skip it and you're done. Results come out about a week after applications close.`
+              }
+              meta={
+                <p className="inline-flex items-center gap-2 text-white/60">
+                  <Check className="size-4 text-emerald-300" aria-hidden />
+                  Application submitted
+                </p>
+              }
             >
-              {subtitle}
-            </motion.p>
-          </AnimatePresence>
-        </motion.header>
-
-        <AnimatePresence>
-          {stage === "teams" && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{
-                opacity: 1,
-                transition: { delay: celebrate ? 0.35 : 0 },
-              }}
-              className="relative mt-10 w-full max-w-3xl"
-            >
-              {team ? (
-                <motion.div variants={fadeUp} initial="hidden" animate="show">
+              <div className="space-y-10">
+                {team ? (
                   <Link
                     href="/apply/teams"
-                    className="flex items-center justify-between gap-4 rounded-2xl border border-white/10 bg-white/[0.04] p-6 hover:border-white/25 md:p-8"
+                    className="group flex items-center justify-between gap-4 rounded-3xl bg-linear-to-b from-[#5f9be2] via-[#3c7bcc] to-[#1c58a1] p-8 text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white md:p-10"
                   >
                     <span>
-                      <span className="font-display block text-2xl text-white">
+                      <span className="font-display block text-4xl leading-none md:text-5xl">
                         {team.name}
                       </span>
-                      <span className="mt-1 block text-white/60">
+                      <span className="mt-3 block text-white/80">
                         {team.isOwner && team.pendingCount > 0
                           ? `${team.pendingCount} ${team.pendingCount === 1 ? "person wants" : "people want"} to join`
-                          : "Manage your team"}
+                          : "Open your team"}
                       </span>
                     </span>
-                    <ArrowRight className="size-5 text-white/70" aria-hidden />
+                    <span className="grid size-12 shrink-0 place-items-center rounded-full bg-white text-[#043251] shadow-lg transition-transform duration-500 ease-out group-hover:scale-110">
+                      <ArrowRight
+                        className="size-5 -rotate-45 transition-transform duration-500 ease-out group-hover:rotate-0"
+                        aria-hidden
+                      />
+                    </span>
                   </Link>
-                </motion.div>
-              ) : (
-                <motion.div
-                  variants={fadeUp}
-                  initial="hidden"
-                  animate="show"
-                  className="flex flex-col items-center gap-4 sm:flex-row sm:justify-center sm:gap-8"
-                >
-                  <Link href="/apply/teams/new" className={choiceLink}>
-                    Make a team
-                  </Link>
-                  <span className="text-sm text-white/40">or</span>
-                  <Link href="/apply/teams/browse" className={choiceLink}>
-                    Join a team
-                  </Link>
-                </motion.div>
-              )}
-              <p className="mx-auto mt-16 max-w-md text-center text-sm leading-relaxed text-white/55">
-                {team
-                  ? "Your application is in. "
-                  : "If not, you're all set. Your application is in and there's nothing else to do. "}
-                Results come out about a week after applications close :)
+                ) : (
+                  <>
+                    <TeamChoices />
+                    <MyRequests requests={requests} open={open} />
+                  </>
+                )}
                 <Link
                   href="/applications/hacker/review"
-                  className="mx-auto mt-3 block w-fit text-white/80 underline underline-offset-4 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-white"
+                  className="inline-block text-white/60 underline underline-offset-4 transition-colors hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-white"
                 >
                   Review your answers
                 </Link>
-              </p>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </main>
+              </div>
+            </TeamPage>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </MotionConfig>
   );
 }

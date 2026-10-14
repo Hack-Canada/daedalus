@@ -68,7 +68,7 @@ export function ApplySubmitted({
     celebrate ? "thanks" : "teams",
   );
   const title =
-    TRACKS.find((item) => item.id === track)?.title ?? "your application";
+    TRACKS.find((item) => item.id === track)?.title ?? "Hack Canada";
 
   useEffect(() => {
     if (!celebrate) return;

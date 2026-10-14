@@ -47,7 +47,10 @@ const fade = {
     y: 0,
     transition: { duration: 0.6, ease: [0.33, 1, 0.68, 1] as const },
   },
-  exit: { opacity: 0, transition: { duration: 0.22, ease: "easeInOut" as const } },
+  exit: {
+    opacity: 0,
+    transition: { duration: 0.22, ease: "easeInOut" as const },
+  },
 };
 
 // Same sky on every auth page; only the heading and one accent change.
@@ -106,30 +109,47 @@ export function AuthScene() {
         </motion.div>
       </AnimatePresence>
 
-      <div className="motion-safe:animate-bob absolute bottom-[8%] left-1/2 flex -translate-x-1/2 flex-col items-center [animation-delay:-2s]">
-        <AnimatePresence initial={false}>
-          {scene === "sign-in" && (
-            <motion.div
-              key="beaver"
-              variants={fade}
-              initial="initial"
-              animate="animate"
-              exit="exit"
-              className="absolute bottom-[76%] left-[28%] w-36"
-            >
-              <Image src="/scenes/beaver-flag.webp" alt="" width={1050} height={764} />
-            </motion.div>
-          )}
-        </AnimatePresence>
-        <Image
-          src="/glacier-small.svg"
-          alt=""
-          width={193}
-          height={115}
-          className="h-40 w-auto"
-        />
-        <span className="mt-2 h-2.5 w-3/4 rounded-full bg-[#043251]/15 blur-sm" />
-      </div>
+      {/* Sign in zooms the island and sinks it past the edge so only the top of the ice shows. */}
+      <motion.div
+        className="absolute left-1/2 origin-bottom -translate-x-1/2"
+        initial={false}
+        animate={
+          scene === "sign-in"
+            ? { scale: 2, bottom: "0%", y: 180 }
+            : { scale: 1, bottom: "8%", y: 0 }
+        }
+        transition={{ duration: 0.6, ease: [0.65, 0, 0.35, 1] }}
+      >
+        <div className="motion-safe:animate-bob relative flex flex-col items-center [animation-delay:-2s]">
+          <AnimatePresence initial={false}>
+            {scene === "sign-in" && (
+              <motion.div
+                key="beaver"
+                variants={fade}
+                initial="initial"
+                animate="animate"
+                exit="exit"
+                className="absolute bottom-[76%] left-[28%] w-36"
+              >
+                <Image
+                  src="/scenes/beaver-flag.webp"
+                  alt=""
+                  width={1050}
+                  height={764}
+                />
+              </motion.div>
+            )}
+          </AnimatePresence>
+          <Image
+            src="/glacier-small.svg"
+            alt=""
+            width={193}
+            height={115}
+            className="h-40 w-auto"
+          />
+          <span className="mt-2 h-2.5 w-3/4 rounded-full bg-[#043251]/15 blur-sm" />
+        </div>
+      </motion.div>
     </aside>
   );
 }

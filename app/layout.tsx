@@ -51,7 +51,7 @@ export default async function RootLayout({
     "@type": "Organization",
     name: "Hack Canada",
     url: "https://hackcanada.org",
-    logo: `${site}/logo-circle.png`,
+    logo: `${site}/hack-canada-logo.png`,
     sameAs: socials,
   };
 

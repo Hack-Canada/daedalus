@@ -2,9 +2,11 @@
 
 import Image from "next/image";
 import { usePathname } from "next/navigation";
+import signInBeachAccent from "@/public/scenes/sign-in-beach-accent.png";
+import signInBeach from "@/public/scenes/sign-in-beach.png";
+import signUpBeach from "@/public/scenes/sign-up-beach-hc27.png";
 import { AnimatePresence, motion } from "framer-motion";
 
-import { hackathonYear } from "@/config/site";
 import { Cloud } from "@/components/apply/ApplyPicker";
 
 type Scene = "sign-in" | "sign-up" | "forgot";
@@ -16,18 +18,7 @@ function sceneFor(pathname: string): Scene {
   return "sign-up";
 }
 
-const COPY: Record<Scene, { title: React.ReactNode; line: string }> = {
-  "sign-in": { title: "Welcome back", line: "Good to see you again." },
-  "sign-up": {
-    title: (
-      <>
-        Hack Canada
-        <br />
-        {hackathonYear}
-      </>
-    ),
-    line: "Apply solo or bring your crew.",
-  },
+const COPY: Record<"forgot", { title: React.ReactNode; line: string }> = {
   forgot: {
     title: (
       <>
@@ -53,9 +44,48 @@ const fade = {
   },
 };
 
-// Same sky on every auth page; only the heading and one accent change.
+// Sign in and sign up use beach artwork; password recovery keeps the sky scene.
 export function AuthScene() {
   const scene = sceneFor(usePathname());
+
+  if (scene === "sign-in" || scene === "sign-up") {
+    const signIn = scene === "sign-in";
+    return (
+      <aside
+        aria-hidden
+        className="[container-type:size] relative hidden flex-1 overflow-hidden bg-[#d9ae73] lg:block"
+      >
+        {/* Anchor the lettering at the panel centre while the artwork covers its height. */}
+        <div
+          className={`absolute top-1/2 ${signIn ? "left-1/2 -translate-x-[49.5%] -translate-y-[52%]" : "left-[55%] -translate-x-1/2 -translate-y-1/2"}`}
+          style={{
+            width: signIn ? "max(100cqw, 197.12cqh)" : "max(100cqw, 148.74cqh)",
+            aspectRatio: signIn ? "4096 / 2285.83203125" : "2539 / 1707",
+          }}
+        >
+          <Image
+            src={signIn ? signInBeach : signUpBeach}
+            alt=""
+            fill
+            priority
+            quality={95}
+            unoptimized={!signIn}
+            sizes="(min-width: 1024px) 110vw, 100vw"
+            className="object-cover"
+          />
+          {signIn && (
+            <Image
+              src={signInBeachAccent}
+              alt=""
+              quality={95}
+              sizes="28vw"
+              className="absolute top-[63.295%] left-[73.548%] h-auto w-[25.323%]"
+            />
+          )}
+        </div>
+      </aside>
+    );
+  }
 
   return (
     <aside
@@ -84,17 +114,6 @@ export function AuthScene() {
             </p>
           </div>
 
-          {scene === "sign-up" && (
-            <div className="motion-safe:animate-bob absolute top-[42%] right-[14%]">
-              <Image
-                src="/paper-plane.svg"
-                alt=""
-                width={200}
-                height={150}
-                className="h-32 w-auto drop-shadow-[0_12px_18px_rgba(4,50,81,0.18)]"
-              />
-            </div>
-          )}
           {scene === "forgot" && (
             <div className="motion-safe:animate-bob absolute top-[40%] right-[14%]">
               <Image
@@ -109,37 +128,13 @@ export function AuthScene() {
         </motion.div>
       </AnimatePresence>
 
-      {/* Sign in zooms the island and sinks it past the edge so only the top of the ice shows. */}
       <motion.div
         className="absolute left-1/2 origin-bottom -translate-x-1/2"
         initial={false}
-        animate={
-          scene === "sign-in"
-            ? { scale: 2, bottom: "0%", y: 180 }
-            : { scale: 1, bottom: "8%", y: 0 }
-        }
+        animate={{ scale: 1, bottom: "8%", y: 0 }}
         transition={{ duration: 0.6, ease: [0.65, 0, 0.35, 1] }}
       >
         <div className="motion-safe:animate-bob relative flex flex-col items-center [animation-delay:-2s]">
-          <AnimatePresence initial={false}>
-            {scene === "sign-in" && (
-              <motion.div
-                key="beaver"
-                variants={fade}
-                initial="initial"
-                animate="animate"
-                exit="exit"
-                className="absolute bottom-[76%] left-[28%] w-36"
-              >
-                <Image
-                  src="/scenes/beaver-flag.webp"
-                  alt=""
-                  width={1050}
-                  height={764}
-                />
-              </motion.div>
-            )}
-          </AnimatePresence>
           <Image
             src="/glacier-small.svg"
             alt=""

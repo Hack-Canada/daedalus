@@ -20,7 +20,7 @@ export function ProfileHeader({
   return (
     <div className="group relative overflow-hidden rounded-xl border border-primary/20 bg-backgroundMuted p-6 transition-all duration-300 hover:border-primary/40 hover:shadow-xl hover:shadow-primary/5 md:p-8">
       <Image
-        src="/logo-circle.png"
+        src="/hack-canada-logo.png"
         alt=""
         width={128}
         height={128}

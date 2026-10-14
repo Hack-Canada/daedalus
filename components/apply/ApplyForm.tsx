@@ -26,14 +26,7 @@ import { TeamStep } from "@/components/teams/TeamStep";
 
 import { BasicQuestions } from "./BasicQuestions";
 import { NormalQuestions } from "./NormalQuestions";
-import { PeekingBeaver } from "./PeekingBeaver";
 import { SocialsMlhTravel } from "./SocialsMlhTravel";
-
-const BEAVER_LINES = {
-  basics: "psst. this part is quick",
-  normal: "ooh, the fun part",
-  team: "bring your friends!",
-};
 
 const actionButton = "min-h-12 px-6 text-base";
 
@@ -221,15 +214,6 @@ export function ApplyForm({
         }
         noValidate
       >
-        <PeekingBeaver
-          line={
-            step === 0
-              ? BEAVER_LINES.basics
-              : track === "team"
-                ? BEAVER_LINES.team
-                : BEAVER_LINES.normal
-          }
-        />
         <div className="space-y-4">
           <Link
             href="/apply"

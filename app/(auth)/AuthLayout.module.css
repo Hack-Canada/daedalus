@@ -1,55 +1,59 @@
-.signIn {
+.viewport {
   height: 100dvh;
   min-height: 0;
   overflow: hidden;
 }
 
-.signIn main {
+.viewport main {
   min-width: 0;
   padding-top: 24px;
   padding-bottom: 24px;
 }
 
-/* Keep every sign-in control visible on shorter laptop and mobile screens. */
+.viewport :global(.auth-card) {
+  min-height: 0;
+}
+
+/* Keep every sign-in and sign-up control visible on shorter laptop and mobile screens. */
 @media (max-height: 760px) {
-  .signIn {
+  .viewport {
     --auth-gap: clamp(8px, calc((100dvh - 550px) / 8), 16px);
   }
 
-  .signIn main {
+  .viewport main {
     padding-top: 8px;
     padding-bottom: 8px;
   }
 
-  .signIn :global(.auth-card),
-  .signIn :global(.auth-content),
-  .signIn form {
+  .viewport :global(.auth-card),
+  .viewport :global(.auth-content),
+  .viewport form {
     gap: var(--auth-gap);
   }
 
-  .signIn :global(.auth-oauth),
-  .signIn :global(.auth-footer) {
+  .viewport :global(.auth-oauth),
+  .viewport :global(.auth-footer) {
     gap: 8px;
   }
 
-  .signIn :global(.auth-oauth) button {
+  .viewport :global(.auth-oauth) button {
     padding-top: 8px;
     padding-bottom: 8px;
   }
 
-  .signIn :global(.auth-back) {
+  .viewport :global(.auth-back) {
     margin-top: var(--auth-gap);
   }
 }
 
 @media (max-height: 600px) {
-  .signIn h1 {
+  .viewport h1 {
     font-size: 36px;
     line-height: 40px;
   }
 
-  .signIn form input,
-  .signIn form button {
+  .viewport form input,
+  .viewport form button {
     height: 36px;
   }
 }

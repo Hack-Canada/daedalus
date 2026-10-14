@@ -14,11 +14,12 @@ export default function AuthLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const signIn = usePathname() === "/sign-in";
+  const pathname = usePathname();
+  const fitViewport = pathname === "/sign-in" || pathname === "/sign-up";
 
   return (
     <div
-      className={`flex min-h-svh w-full bg-[#0a0a0f] ${signIn ? styles.signIn : ""}`}
+      className={`flex min-h-svh w-full bg-[#0a0a0f] ${fitViewport ? styles.viewport : ""}`}
     >
       <ApplyMark />
       <AuthScene />

@@ -217,9 +217,9 @@ export function ApplyForm({
         <div className="space-y-4">
           <Link
             href="/apply"
-            className="inline-block text-base text-white/55 underline-offset-4 transition-colors hover:text-white hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-white"
+            className="inline-block text-[1.3rem] text-white/55 underline-offset-4 transition-colors hover:text-white hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-white"
           >
-            All application types
+            Go back (all application types)
           </Link>
           <h1 className="font-display text-4xl font-semibold text-white md:text-6xl">
             {title}

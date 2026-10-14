@@ -35,7 +35,7 @@ const OAuthButtons = ({ callbackUrl = "/", mode }: Props) => {
   };
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="auth-oauth flex flex-col gap-3">
       <button
         type="button"
         onClick={(e) => handleOAuthSignIn(e, "google")}

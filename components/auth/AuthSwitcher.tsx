@@ -69,7 +69,7 @@ export function AuthSwitcher() {
   return (
     <MotionConfig reducedMotion="user">
       <div onClickCapture={onClickCapture}>
-        <AuthCardWrapper>
+        <AuthCardWrapper reserveHeight={signUp}>
           <AnimatePresence mode="wait" initial={false}>
             <motion.div
               key={signUp ? "up" : "in"}
@@ -77,7 +77,7 @@ export function AuthSwitcher() {
               initial="initial"
               animate="animate"
               exit="exit"
-              className="flex flex-col gap-6"
+              className="auth-content flex flex-col gap-6"
             >
               {signUp ? (
                 <>

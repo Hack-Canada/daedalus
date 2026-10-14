@@ -9,7 +9,6 @@ const SignInHeader = ({}: Props) => {
       <p className="text-sm text-white/60 md:text-base">
         to continue to Hack Canada
       </p>
-      <p className="pt-2 text-xs text-white/40">Last year&apos;s login still works.</p>
     </div>
   );
 };

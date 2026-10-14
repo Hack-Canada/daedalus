@@ -3,10 +3,9 @@ import {
   SendRawEmailCommand,
   SESClient,
 } from "@aws-sdk/client-ses";
-import { render } from "@react-email/render";
+import { render, toPlainText } from "@react-email/render";
 
 import { hackathonYear } from "@/config/site";
-
 import ApplicationReminderEmail from "@/components/emails/ApplicationReminderEmail";
 import ApplicationSubmittedEmail from "@/components/emails/ApplicationSubmittedEmail";
 import { APP_URL } from "@/components/emails/EmailShell";
@@ -23,6 +22,8 @@ const ses = new SESClient({
     secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || "",
   },
 });
+
+const REPLY_TO = "hi@hackcanada.org";
 
 type SendEmailResult = {
   success: boolean;
@@ -46,6 +47,7 @@ export const sendEmailWithInlineImages = async (
 
   let rawEmail = [
     `From: ${fromAddress}`,
+    `Reply-To: ${REPLY_TO}`,
     `To: ${to}`,
     `Subject: ${subject}`,
     `MIME-Version: 1.0`,
@@ -102,6 +104,7 @@ export const sendEmail = async (
     Destination: {
       ToAddresses: [to],
     },
+    ReplyToAddresses: [REPLY_TO],
     Message: {
       Body: {
         Html: {
@@ -110,7 +113,7 @@ export const sendEmail = async (
         },
         Text: {
           Charset: "UTF-8",
-          Data: body.replace(/<[^>]+>/g, ""),
+          Data: toPlainText(body),
         },
       },
       Subject: {
@@ -143,7 +146,7 @@ type WelcomeEmailProps = {
 export const sendWelcomeEmail = async (data: WelcomeEmailProps) => {
   const { name, email, subject, verificationCode, token } = data;
 
-  const verificationUrl = `${APP_URL}/email-verification?token=${token}&code=${verificationCode}&email=${email}`;
+  const verificationUrl = `${APP_URL}/email-verification?${new URLSearchParams({ token, code: verificationCode, email })}`;
 
   const body = await render(
     WelcomeEmail({
@@ -326,6 +329,7 @@ export const sendHackathonPrepEmail = async (data: HackathonPrepEmailProps) => {
     Destination: {
       ToAddresses: [email],
     },
+    ReplyToAddresses: [REPLY_TO],
     Message: {
       Body: {
         Html: {
@@ -382,6 +386,7 @@ export const sendApplicationReminderEmail = async (
     Destination: {
       ToAddresses: [email],
     },
+    ReplyToAddresses: [REPLY_TO],
     Message: {
       Body: {
         Html: {

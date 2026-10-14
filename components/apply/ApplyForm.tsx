@@ -26,7 +26,16 @@ import { TeamStep } from "@/components/teams/TeamStep";
 
 import { BasicQuestions } from "./BasicQuestions";
 import { NormalQuestions } from "./NormalQuestions";
+import { PeekingBeaver } from "./PeekingBeaver";
 import { SocialsMlhTravel } from "./SocialsMlhTravel";
+
+const BEAVER_LINES = {
+  basics: "psst. this part is quick",
+  normal: "ooh, the fun part",
+  team: "bring your friends!",
+};
+
+const actionButton = "min-h-12 px-6 text-base";
 
 const SHARED_FIELDS: FieldPath<THackerApplicationSubmission>[] = [
   "firstName",
@@ -201,7 +210,7 @@ export function ApplyForm({
     <Form {...form}>
       <form
         id="apply-form"
-        className="space-y-10"
+        className="space-y-12"
         onSubmit={
           onLastPage
             ? onSubmit
@@ -212,20 +221,39 @@ export function ApplyForm({
         }
         noValidate
       >
-        <div className="space-y-2">
-          <p className="text-sm text-white/50">
-            <Link
-              href="/apply"
-              className="underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-white"
-            >
-              All application types
-            </Link>
-          </p>
-          <h1 className="font-display text-3xl font-semibold text-white md:text-4xl">
+        <PeekingBeaver
+          line={
+            step === 0
+              ? BEAVER_LINES.basics
+              : track === "team"
+                ? BEAVER_LINES.team
+                : BEAVER_LINES.normal
+          }
+        />
+        <div className="space-y-4">
+          <Link
+            href="/apply"
+            className="inline-block text-base text-white/55 underline-offset-4 transition-colors hover:text-white hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-white"
+          >
+            All application types
+          </Link>
+          <h1 className="font-display text-4xl font-semibold text-white md:text-6xl">
             {title}
           </h1>
           {hasSecondPage && (
-            <p className="text-sm text-white/50">Step {step + 1} of 2</p>
+            <div className="flex items-center gap-4">
+              <div className="flex w-32 gap-1.5" aria-hidden>
+                {[0, 1].map((index) => (
+                  <span
+                    key={index}
+                    className={`h-1.5 flex-1 rounded-full transition-colors duration-500 ${
+                      index <= step ? "bg-[#85B7F1]" : "bg-white/15"
+                    }`}
+                  />
+                ))}
+              </div>
+              <p className="text-base text-white/60">Step {step + 1} of 2</p>
+            </div>
           )}
         </div>
 
@@ -251,12 +279,12 @@ export function ApplyForm({
           )}
         </div>
 
-        <div className="flex flex-wrap gap-3">
+        <div className="flex flex-wrap gap-3 pt-2">
           {hasSecondPage && step === 1 && (
             <Button
               type="button"
               variant="outline"
-              className="min-h-11"
+              className={actionButton}
               onClick={() => {
                 setStep(0);
                 window.scrollTo({ top: 0 });
@@ -269,7 +297,7 @@ export function ApplyForm({
             <Button
               type="button"
               variant="outline"
-              className="min-h-11"
+              className={actionButton}
               disabled={form.formState.isSubmitting || resumeUploading}
               onClick={() => void onSave()}
             >
@@ -279,7 +307,7 @@ export function ApplyForm({
           {hasSecondPage && step === 0 && (
             <Button
               type="button"
-              className="min-h-11"
+              className={actionButton}
               disabled={resumeUploading}
               onClick={() => void onNext()}
             >
@@ -289,7 +317,7 @@ export function ApplyForm({
           {onLastPage && canSubmit && (
             <Button
               type="submit"
-              className="min-h-11"
+              className={actionButton}
               disabled={
                 form.formState.isSubmitting || resumeUploading || !teamReady
               }

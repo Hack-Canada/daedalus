@@ -29,7 +29,7 @@ export function BasicQuestions({
 
   return (
     <fieldset className="space-y-4">
-      <legend className="mb-4 font-display text-2xl font-semibold text-white">
+      <legend className="font-display mb-6 text-3xl font-semibold text-white md:text-4xl">
         Basic questions
       </legend>
       <div className="grid gap-4 sm:grid-cols-2">
@@ -128,14 +128,18 @@ export function BasicQuestions({
               <AdvancedSelect
                 name="school.value"
                 value={
-                  field.value ? { value: field.value, label: field.value } : null
+                  field.value
+                    ? { value: field.value, label: field.value }
+                    : null
                 }
                 onChange={field.onChange}
                 loadOptions={(inputValue) =>
                   Promise.resolve(
                     schools
                       .filter((schoolName) =>
-                        schoolName.toLowerCase().includes(inputValue.toLowerCase()),
+                        schoolName
+                          .toLowerCase()
+                          .includes(inputValue.toLowerCase()),
                       )
                       .map((schoolName) => ({
                         value: schoolName,
@@ -159,11 +163,7 @@ export function BasicQuestions({
             <FormItem>
               <FormLabel>School (other){requiredMark}</FormLabel>
               <FormControl>
-                <Input
-                  {...field}
-                  required
-                  placeholder="Enter your school"
-                />
+                <Input {...field} required placeholder="Enter your school" />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -187,7 +187,9 @@ export function BasicQuestions({
               <AdvancedSelect
                 name="levelOfStudy"
                 value={
-                  field.value ? { value: field.value, label: field.value } : null
+                  field.value
+                    ? { value: field.value, label: field.value }
+                    : null
                 }
                 onChange={field.onChange}
                 loadOptions={(inputValue) =>

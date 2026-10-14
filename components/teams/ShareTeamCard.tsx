@@ -170,11 +170,11 @@ export function ShareTeamCard({
     <>
       <Button
         type="button"
-        className="min-h-11 w-full gap-2"
+        className="min-h-12 w-full gap-2 rounded-xl bg-white text-base text-[#043251] hover:bg-white/90"
         onClick={() => setShown(true)}
       >
         <Sparkles className="size-4" aria-hidden />
-        Share a finding-team card
+        Make a share card
       </Button>
       <Dialog open={shown} onOpenChange={setShown}>
         <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto sm:max-w-3xl">

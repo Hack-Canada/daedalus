@@ -20,5 +20,8 @@ export async function loadTeamPage(path: string) {
     userId: user.id,
     open: features.applicationSaving || features.applicationSubmission,
     backHref,
+    submitted:
+      user.status !== "not_applied" ||
+      application?.submissionStatus === "submitted",
   };
 }

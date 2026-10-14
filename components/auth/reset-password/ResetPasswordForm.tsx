@@ -20,6 +20,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
 
 type ResetPasswordParamsProps = {
   token: string;
@@ -83,11 +84,11 @@ const ResetPasswordForm = ({ token }: ResetPasswordParamsProps) => {
             <FormItem className="space-y-2">
               <FormLabel className="text-white/90 font-medium">New Password</FormLabel>
               <FormControl>
-                <input
+                <Input
                   {...field}
                   type="password"
                   placeholder="Enter new password"
-                  className="flex h-11 w-full rounded-lg border border-white/30 bg-white/10 px-4 py-2.5 text-white shadow-lg shadow-black/20 backdrop-blur-md placeholder:text-white/40 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-white/50 focus-visible:border-white/50 disabled:cursor-not-allowed disabled:opacity-50 transition-all"
+                  className="h-11"
                 />
               </FormControl>
               <FormMessage className="text-red-300" />
@@ -102,11 +103,11 @@ const ResetPasswordForm = ({ token }: ResetPasswordParamsProps) => {
             <FormItem className="space-y-2">
               <FormLabel className="text-white/90 font-medium">Confirm Password</FormLabel>
               <FormControl>
-                <input
+                <Input
                   {...field}
                   type="password"
                   placeholder="Confirm new password"
-                  className="flex h-11 w-full rounded-lg border border-white/30 bg-white/10 px-4 py-2.5 text-white shadow-lg shadow-black/20 backdrop-blur-md placeholder:text-white/40 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-white/50 focus-visible:border-white/50 disabled:cursor-not-allowed disabled:opacity-50 transition-all"
+                  className="h-11"
                 />
               </FormControl>
               <FormMessage className="text-red-300" />

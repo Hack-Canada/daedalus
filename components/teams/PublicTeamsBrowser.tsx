@@ -37,7 +37,13 @@ export function PublicTeamsBrowser({
   if (teams.length === 0) {
     return (
       <div className="flex flex-col items-center px-6 py-12 text-center">
-        <Image src="/glacier-small.svg" alt="" width={120} height={72} />
+        <Image
+          src="/scenes/boat.webp"
+          alt=""
+          width={1000}
+          height={345}
+          className="motion-safe:animate-bob h-14 w-auto"
+        />
         <p className="font-display mt-4 text-2xl text-white">
           No public teams yet
         </p>

@@ -26,14 +26,7 @@ import { TeamStep } from "@/components/teams/TeamStep";
 
 import { BasicQuestions } from "./BasicQuestions";
 import { NormalQuestions } from "./NormalQuestions";
-import { PeekingBeaver } from "./PeekingBeaver";
 import { SocialsMlhTravel } from "./SocialsMlhTravel";
-
-const BEAVER_LINES = {
-  basics: "psst. this part is quick",
-  normal: "ooh, the fun part",
-  team: "bring your friends!",
-};
 
 const actionButton = "min-h-12 px-6 text-base";
 
@@ -221,21 +214,12 @@ export function ApplyForm({
         }
         noValidate
       >
-        <PeekingBeaver
-          line={
-            step === 0
-              ? BEAVER_LINES.basics
-              : track === "team"
-                ? BEAVER_LINES.team
-                : BEAVER_LINES.normal
-          }
-        />
         <div className="space-y-4">
           <Link
             href="/apply"
-            className="inline-block text-base text-white/55 underline-offset-4 transition-colors hover:text-white hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-white"
+            className="inline-block text-[1.3rem] text-white/55 underline-offset-4 transition-colors hover:text-white hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-white"
           >
-            All application types
+            Go back (all application types)
           </Link>
           <h1 className="font-display text-4xl font-semibold text-white md:text-6xl">
             {title}

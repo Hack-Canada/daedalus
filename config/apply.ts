@@ -34,19 +34,19 @@ export const TRACKS: {
     id: "quick",
     title: "Quick Apps",
     description:
-      "For technical folks who would rather let their work talk. Your basics, links, and resume, and you are done.",
+      "A quick, simple application focused on your technical work. The fastest way to apply, but also the most competitive.",
   },
   {
     id: "normal",
     title: "Normal Apps",
     description:
-      "Everything in Quick Apps, plus two short answers so we get to know how you think and what you build.",
+      "Tell us about your projects, your passion, and how you think. Two short answers take a little more time, but give you a better chance of getting in.",
   },
   {
     id: "team",
     title: "Team Apps",
     description:
-      "Everything in Quick Apps, plus a team you make or join. Answer the team questions together.",
+      "Apply together. Everyone answers a few questions individually, then you work together on one shared answer. Show us a cohesive team that works well together for the best chance of getting in.",
   },
 ];
 

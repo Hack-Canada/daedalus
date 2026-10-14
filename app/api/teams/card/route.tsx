@@ -1,5 +1,3 @@
-import { readFile } from "node:fs/promises";
-import path from "node:path";
 import { ImageResponse } from "next/og";
 import { NextRequest } from "next/server";
 
@@ -10,83 +8,19 @@ import {
   parseCardOptions,
 } from "@/lib/apply/team-card";
 import { getTeamCard } from "@/lib/db/queries/team";
+import {
+  Cloud,
+  loadFont,
+  loadLogo,
+  NAVY,
+  SEA_GRADIENT,
+  SKY_GRADIENT,
+} from "@/lib/og";
 
-const NAVY = "#043251";
 const LOOKING_FOR_MAX = 150;
-
-let logo: Promise<string> | null = null;
-function loadLogo() {
-  logo ??= readFile(path.join(process.cwd(), "public", "logo-circle.png")).then(
-    (file) => `data:image/png;base64,${file.toString("base64")}`,
-  );
-  return logo;
-}
-
-// ponytail: fonts come from Google Fonts on first render, then live in memory.
-// If Google is unreachable the card falls back to the default font. Bundle the
-// .ttf files if that ever matters.
-const fonts = new Map<string, Promise<ArrayBuffer | null>>();
-function loadFont(family: string, weight: number) {
-  const key = `${family}:${weight}`;
-  let font = fonts.get(key);
-  if (!font) {
-    font = fetch(
-      `https://fonts.googleapis.com/css2?family=${family.replaceAll(" ", "+")}:wght@${weight}`,
-    )
-      .then((res) => res.text())
-      .then((css) => {
-        const url = css.match(
-          /src: url\((.+?)\) format\('(?:opentype|truetype)'\)/,
-        )?.[1];
-        if (!url) throw new Error(`No ttf for ${key}`);
-        return fetch(url);
-      })
-      .then((res) => res.arrayBuffer())
-      .catch((error) => {
-        fonts.delete(key);
-        console.error("Team card font failed", error);
-        return null;
-      });
-    fonts.set(key, font);
-  }
-  return font;
-}
 
 function clip(text: string, max: number) {
   return text.length > max ? `${text.slice(0, max - 1).trimEnd()}…` : text;
-}
-
-function Cloud({ x, y, s }: { x: number; y: number; s: number }) {
-  const puff = (left: number, top: number, w: number, h: number) => (
-    <div
-      style={{
-        position: "absolute",
-        left: left * s,
-        top: top * s,
-        width: w * s,
-        height: h * s,
-        borderRadius: 9999,
-        background: "#fff",
-      }}
-    />
-  );
-  return (
-    <div
-      style={{
-        position: "absolute",
-        left: x,
-        top: y,
-        width: 240 * s,
-        height: 100 * s,
-        display: "flex",
-        opacity: 0.75,
-      }}
-    >
-      {puff(0, 44, 240, 56)}
-      {puff(40, 8, 100, 92)}
-      {puff(112, 24, 88, 76)}
-    </div>
-  );
 }
 
 export async function GET(req: NextRequest) {
@@ -268,8 +202,7 @@ export async function GET(req: NextRequest) {
         flexDirection: "column",
         position: "relative",
         fontFamily: "Inter",
-        background:
-          "linear-gradient(180deg, #6FA6EA 0%, #9DC5F3 55%, #CFE3F9 100%)",
+        background: SKY_GRADIENT,
       }}
     >
       <Cloud x={wide ? 820 : 720} y={wide ? 404 : 790} s={wide ? 0.9 : 1.3} />
@@ -282,7 +215,7 @@ export async function GET(req: NextRequest) {
           bottom: 0,
           height: seaHeight,
           borderTop: "8px solid rgba(255,255,255,0.7)",
-          background: "linear-gradient(180deg, #4A8FDB 0%, #255FAE 100%)",
+          background: SEA_GRADIENT,
         }}
       />
       <div

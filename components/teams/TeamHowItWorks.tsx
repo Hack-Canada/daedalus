@@ -12,6 +12,7 @@ import {
 const POINTS = [
   `Teams have ${MIN_TEAM_APPLY} to ${MAX_TEAM_SIZE} people, including you.`,
   "Everyone submits their own application on the Team track. Your team is attached to it.",
+  "We review teams as a whole, so your whole team gets in together.",
   "The team stays open until applications close. People can join or leave, and answers can change.",
   "The owner can lock the team answers so no one edits them, and unlock them any time.",
   "Finish the team answers before applications close. Nothing can change after that.",

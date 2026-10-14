@@ -26,6 +26,7 @@ export function EmailVerificationCard() {
   const [isCheckingStatus, setIsCheckingStatus] = useState(false);
   const [error, setError] = useState("");
   const hasAttemptedAutoVerify = useRef(false);
+  const otpRef = useRef<HTMLInputElement>(null);
 
   const token = searchParams.get("token");
   const code = searchParams.get("code");
@@ -78,6 +79,11 @@ export function EmailVerificationCard() {
       });
     }
   }, [token, code, verifyEmail]);
+
+  // Disabling the input during a check drops focus, so hand it back whenever it is usable again.
+  useEffect(() => {
+    if (!isLoading && !isAutoVerifying) otpRef.current?.focus();
+  }, [isLoading, isAutoVerifying]);
 
   // Check if email has been verified elsewhere (polling)
   const checkVerificationStatus = useCallback(async () => {
@@ -176,6 +182,8 @@ export function EmailVerificationCard() {
       </div>
       <div className="space-y-6">
         <InputOTP
+          ref={otpRef}
+          autoFocus
           maxLength={6}
           onComplete={handleManualSubmit}
           disabled={isLoading}

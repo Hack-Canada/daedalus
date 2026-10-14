@@ -12,27 +12,20 @@ export function Tabs() {
   const isSignUp = pathname?.includes("sign-up");
 
   return (
-    <div className="relative flex w-fit rounded-full border border-white/30 bg-white/10 p-1 backdrop-blur-sm">
+    <div className="relative flex w-fit rounded-full bg-white/[0.06] p-1">
       {/* Animated background indicator */}
       <motion.div
-        className="absolute top-1 bottom-1 rounded-full bg-white"
+        className="absolute top-1 bottom-1 left-1 w-[calc(50%-4px)] rounded-full bg-[#85B7F1]"
         initial={false}
-        animate={{
-          left: isSignUp ? "50%" : "4px",
-          right: isSignUp ? "4px" : "50%",
-        }}
-        transition={{
-          type: "spring",
-          stiffness: 400,
-          damping: 30,
-        }}
+        animate={{ x: isSignUp ? "100%" : "0%" }}
+        transition={{ duration: 0.6, ease: [0.65, 0, 0.35, 1] }}
       />
 
       <Link
         href="/sign-in"
         className={cn(
-          "relative z-10 cursor-pointer px-5 py-2 text-sm font-medium transition-colors duration-200 md:px-6 md:text-base",
-          isSignIn ? "text-black" : "text-white/60 hover:text-white/80",
+          "relative z-10 cursor-pointer px-5 py-2 text-sm font-medium transition-colors duration-500 md:px-6 md:text-base",
+          isSignIn ? "text-[#043251]" : "text-white/60 hover:text-white/80",
         )}
       >
         Sign In
@@ -40,8 +33,8 @@ export function Tabs() {
       <Link
         href="/sign-up"
         className={cn(
-          "relative z-10 cursor-pointer px-5 py-2 text-sm font-medium transition-colors duration-200 md:px-6 md:text-base",
-          isSignUp ? "text-black" : "text-white/60 hover:text-white/80",
+          "relative z-10 cursor-pointer px-5 py-2 text-sm font-medium transition-colors duration-500 md:px-6 md:text-base",
+          isSignUp ? "text-[#043251]" : "text-white/60 hover:text-white/80",
         )}
       >
         Sign Up

@@ -16,6 +16,8 @@ import { Tailwind } from "@react-email/tailwind";
 
 import { hackathonYear } from "@/config/site";
 
+import { APP_URL } from "./EmailShell";
+
 type Props = {
   name: string;
   userId: string;
@@ -23,13 +25,13 @@ type Props = {
 
 const HackathonPrepEmail = ({ name, userId }: Props) => {
   const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(
-    `https://app.hackcanada.org/profile/${userId}`,
+    `${APP_URL}/profile/${userId}`,
   )}`;
 
   return (
     <Html>
       <Preview>
-        🚀 Hack Canada Event Details and Check-in Information - 2026
+        {`🚀 Hack Canada Event Details and Check-in Information - ${hackathonYear}`}
       </Preview>
       <Tailwind
         config={{
@@ -62,9 +64,9 @@ const HackathonPrepEmail = ({ name, userId }: Props) => {
             style={{ maxWidth: "600px", margin: "0 auto", padding: "20px 0" }}
           >
             <Img
-              src="https://hackcanada.org/email-headers/hack_canada_congrats_header.png"
+              src={`${APP_URL}/emails/accepted.jpg`}
               width="600"
-              alt="Hack Canada Banner"
+              alt="The Hack Canada beaver sailing with a flag"
               style={{
                 width: "100%",
                 maxWidth: "600px",
@@ -347,7 +349,7 @@ const HackathonPrepEmail = ({ name, userId }: Props) => {
                 >
                   •{" "}
                   <a
-                    href="https://app.hackcanada.org"
+                    href={APP_URL}
                     style={{
                       color: "#1E90FF",
                       textDecoration: "underline",
@@ -483,7 +485,7 @@ const HackathonPrepEmail = ({ name, userId }: Props) => {
                   </Link>
                   <span style={{ color: "#D1D5DB" }}>·</span>
                   <Link
-                    href="https://app.hackcanada.org"
+                    href={APP_URL}
                     target="_blank"
                     style={{
                       color: "#9CA3AF",

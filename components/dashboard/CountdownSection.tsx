@@ -2,14 +2,13 @@
 
 import Image from "next/image";
 
-import { getEventDate } from "@/config/phases";
 import { useHackathonPhase } from "@/hooks/useHackathonPhase";
 
 import { CountdownTimer } from "../ui/CountdownTimer";
 import { Snowflakes } from "../ui/Snowflakes";
 
 export const CountdownSection = () => {
-  const { isFeatureEnabled } = useHackathonPhase();
+  const { isFeatureEnabled, eventDate } = useHackathonPhase();
 
   // Hide countdown during and after the event
   if (!isFeatureEnabled("showCountdown")) {
@@ -21,17 +20,17 @@ export const CountdownSection = () => {
       <Snowflakes />
 
       <div className="relative z-10 flex h-full flex-col justify-between gap-8">
-        <CountdownTimer targetDate={getEventDate()} />
+        <CountdownTimer targetDate={eventDate} />
 
         {/* Bottom left decorative section */}
         <div className="flex flex-col items-center gap-4 sm:flex-row">
-          <div className="relative size-20 sm:h-20 sm:w-20">
+          <div className="relative size-16">
             <Image
-              src="/beaver-wave.webp"
-              alt="Beaver mascot"
+              src="/logo-circle.png"
+              alt="Hack Canada"
               fill
-              className="object-contain"
-              sizes="80px"
+              className="rounded-full object-contain"
+              sizes="64px"
             />
           </div>
           <div className="text-center sm:text-left">

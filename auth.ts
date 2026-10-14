@@ -3,14 +3,14 @@ import { DrizzleAdapter } from "@auth/drizzle-adapter";
 import NextAuth, { DefaultSession } from "next-auth";
 
 import authConfig from "./auth.config";
-import { isFeatureEnabled } from "./config/phases";
 import { db } from "./lib/db";
 import {
   createVerificationToken,
   getVerificationTokenByEmail,
 } from "./lib/db/queries/email-verification-tokens";
-import { getUserById } from "./lib/db/queries/user";
+import { getUserByEmail, getUserById } from "./lib/db/queries/user";
 import { sendWelcomeEmail } from "./lib/emails/ses";
+import { getPhaseState } from "./lib/phase";
 
 declare module "next-auth" {
   interface Session {
@@ -37,8 +37,16 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   },
   callbacks: {
     async signIn({ account, user }) {
-      // For OAuth providers (Google, GitHub, etc.)
       if (account?.provider !== "credentials") {
+        const { features } = await getPhaseState();
+        if (!features.oauthSignIn) return false;
+
+        const email = user.email;
+        if (!email) return false;
+
+        const existingUser = await getUserByEmail(email);
+        if (!existingUser && !features.userRegistration) return false;
+
         return true;
       }
 

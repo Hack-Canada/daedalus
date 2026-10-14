@@ -1,10 +1,4 @@
-import {
-  getApplicationDeadline,
-  getEventDate,
-  isFeatureEnabled,
-} from "./phases";
-
-export const hackathonYear = 2026;
+export const hackathonYear = 2027;
 
 export const siteConfig = {
   metadataBase: new URL("https://app.hackcanada.org"),
@@ -13,8 +7,7 @@ export const siteConfig = {
     "Official Hack Canada Hacker Portal - Apply to Canada's premier hackathon, manage your application, access your hacker package, and join 500+ innovators. HC Hacker Portal for Hack Canada applications, RSVP, and event registration.",
   openGraph: {
     title: `Hack Canada ${hackathonYear} Hacker Portal | HC Applications`,
-    description:
-      `Join Hack Canada ${hackathonYear}! Apply through the official hacker portal, submit your hackathon application, and be part of Canada's biggest student hackathon community.`,
+    description: `Join Hack Canada ${hackathonYear}! Apply through the official hacker portal, submit your hackathon application, and be part of Canada's biggest student hackathon community.`,
     type: "website",
     locale: "en_CA",
     siteName: "Hack Canada Hacker Portal",
@@ -47,7 +40,7 @@ export const siteConfig = {
     // Hackathon + location keywords
     "hackathon Canada",
     "Canadian hackathon",
-    "Canada hackathon 2026",
+    "Canada hackathon 2027",
     "hackathon Ontario",
     "hackathon Waterloo",
     "hackathon Toronto",
@@ -113,11 +106,6 @@ export const siteConfig = {
   },
 };
 
-// Phase-aware configuration values
-// These are computed based on the current hackathon phase
-export const userRegistrationEnabled: boolean =
-  isFeatureEnabled("userRegistration");
-
 // URLs and external links
 export const discordInviteUrl: string = "https://discord.gg/52Ev4CCUxe";
 export const hackathonsCanadaDiscordUrl: string =
@@ -128,8 +116,3 @@ export const hackerPackageUrl: string =
 export const devpostUrl: string = "https://hack-canada-2026.devpost.com/";
 export const eventGalleryUrl: string =
   process.env.NEXT_PUBLIC_GALLERY_URL || "";
-
-// Date-based configuration (now sourced from phases.ts)
-// Re-export for backwards compatibility
-export const eventDate = getEventDate();
-export const hackerApplicationDeadline = getApplicationDeadline();

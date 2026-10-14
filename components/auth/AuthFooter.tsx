@@ -26,7 +26,7 @@ const AuthFooter = ({
               {customSignInLabel || "Already have an account?"}{" "}
               <Link
                 href="/sign-in"
-                className="cursor-pointer text-blue-300 hover:text-blue-200 font-medium transition-all hover:underline"
+                className="cursor-pointer text-[#85B7F1] hover:text-white font-medium transition-all hover:underline"
               >
                 Sign In
               </Link>
@@ -37,7 +37,7 @@ const AuthFooter = ({
               New to Hack Canada?{" "}
               <Link
                 href="/sign-up"
-                className="cursor-pointer text-blue-300 hover:text-blue-200 font-medium transition-all hover:underline"
+                className="cursor-pointer text-[#85B7F1] hover:text-white font-medium transition-all hover:underline"
               >
                 Sign Up
               </Link>
@@ -50,7 +50,7 @@ const AuthFooter = ({
           {showResetPassword && (
             <Link
               href="/forgot-password"
-              className="cursor-pointer text-blue-300 hover:text-blue-200 font-medium transition-all hover:underline"
+              className="cursor-pointer text-[#85B7F1] hover:text-white font-medium transition-all hover:underline"
             >
               Forgot password?
             </Link>
@@ -59,7 +59,7 @@ const AuthFooter = ({
             <Link
               href="mailto:hi@hackcanada.org"
               target="_blank"
-              className="cursor-pointer text-blue-300 hover:text-blue-200 font-medium transition-all hover:underline"
+              className="cursor-pointer text-[#85B7F1] hover:text-white font-medium transition-all hover:underline"
             >
               Need help?
             </Link>

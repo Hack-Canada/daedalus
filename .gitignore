@@ -45,7 +45,4 @@ next-env.d.ts
 # database
 *.db
 
-# drizzle
-drizzle
-
 certificates

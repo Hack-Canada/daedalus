@@ -5,28 +5,34 @@ import { FaGithub } from "react-icons/fa6";
 import { FcGoogle } from "react-icons/fc";
 import { toast } from "sonner";
 
-import { isFeatureEnabled } from "@/config/phases";
 import { cn } from "@/lib/utils";
+import { useHackathonPhase } from "@/hooks/useHackathonPhase";
 
 type Props = {
   callbackUrl?: string;
+  mode: "sign-in" | "sign-up";
 };
 
-const OAuthButtons = ({ callbackUrl = "/" }: Props) => {
+const OAuthButtons = ({ callbackUrl = "/", mode }: Props) => {
+  const { features } = useHackathonPhase();
+  const allowed =
+    features.oauthSignIn && (mode === "sign-in" || features.userRegistration);
+
   const handleOAuthSignIn = (
     e: React.MouseEvent<HTMLButtonElement>,
     provider: "google" | "github",
   ) => {
     e.preventDefault();
-    // block oauth signin if user registration is disabled
-    if (!isFeatureEnabled("userRegistration")) {
-      toast.error("User registration is currently disabled.");
+    if (!allowed) {
+      toast.error(
+        features.oauthSignIn
+          ? "User registration is currently disabled."
+          : "Sign-in with Google and GitHub is currently disabled.",
+      );
       return false;
     }
     signIn(provider, { callbackUrl });
   };
-
-  const isOAuthEnabled = isFeatureEnabled("oauthSignIn");
 
   return (
     <div className="flex flex-col gap-3">
@@ -34,11 +40,11 @@ const OAuthButtons = ({ callbackUrl = "/" }: Props) => {
         type="button"
         onClick={(e) => handleOAuthSignIn(e, "google")}
         className={cn(
-          "flex w-full cursor-pointer items-center justify-center gap-3 rounded-lg border border-white/20 bg-white/5 px-4 py-3 font-medium text-white backdrop-blur-sm transition-all hover:bg-white/10 hover:border-white/30 disabled:cursor-not-allowed disabled:opacity-50",
-          !isOAuthEnabled && "cursor-not-allowed opacity-50",
+          "flex w-full cursor-pointer items-center justify-center gap-3 rounded-full border border-white/15 bg-white/[0.04] px-4 py-3 font-medium text-white transition-colors hover:border-white/30 hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-50",
+          !allowed && "cursor-not-allowed opacity-50",
         )}
         aria-label="Continue with Google"
-        disabled={!isOAuthEnabled}
+        disabled={!allowed}
       >
         <FcGoogle size={22} />
         <span>Continue with Google</span>
@@ -48,11 +54,11 @@ const OAuthButtons = ({ callbackUrl = "/" }: Props) => {
         type="button"
         onClick={(e) => handleOAuthSignIn(e, "github")}
         className={cn(
-          "flex w-full cursor-pointer items-center justify-center gap-3 rounded-lg border border-white/20 bg-white/5 px-4 py-3 font-medium text-white backdrop-blur-sm transition-all hover:bg-white/10 hover:border-white/30 disabled:cursor-not-allowed disabled:opacity-50",
-          !isOAuthEnabled && "cursor-not-allowed opacity-50",
+          "flex w-full cursor-pointer items-center justify-center gap-3 rounded-full border border-white/15 bg-white/[0.04] px-4 py-3 font-medium text-white transition-colors hover:border-white/30 hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-50",
+          !allowed && "cursor-not-allowed opacity-50",
         )}
         aria-label="Continue with GitHub"
-        disabled={!isOAuthEnabled}
+        disabled={!allowed}
       >
         <FaGithub size={22} />
         <span>Continue with GitHub</span>

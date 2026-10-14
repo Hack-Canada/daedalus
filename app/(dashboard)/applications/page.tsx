@@ -3,8 +3,8 @@ import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/auth";
 
 import { getApplications } from "@/config/applications";
-import { getCurrentPhase } from "@/config/phases";
 import { hackathonYear } from "@/config/site";
+import { getPhaseState } from "@/lib/phase";
 import { BackButton } from "@/components/ui/back-button";
 import { ApplicationCard } from "@/components/applications/ApplicationCard";
 import PageWrapper from "@/components/PageWrapper";
@@ -41,8 +41,12 @@ const ApplicationPage = async () => {
   const alreadyApplied = user.status !== "not_applied";
 
   // Get phase-aware applications and current phase
-  const applications = getApplications();
-  const currentPhase = getCurrentPhase();
+  const phaseState = await getPhaseState();
+  const applications = getApplications(
+    phaseState.phase,
+    new Date(phaseState.dates.registrationClose),
+  );
+  const currentPhase = phaseState.phase;
 
   return (
     <PageWrapper>
@@ -60,6 +64,7 @@ const ApplicationPage = async () => {
           <ApplicationCard
             key={application.title}
             application={application}
+            phase={currentPhase}
             alreadyApplied={
               alreadyApplied && application.title === "Hacker Applications"
             }

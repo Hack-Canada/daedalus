@@ -149,9 +149,9 @@ export function EmailVerificationCard() {
     return (
       <AuthCardWrapper>
         <div className="flex flex-col items-center justify-center space-y-4 py-8">
-          <Loader2 className="text-primary size-12 animate-spin" />
+          <Loader2 className="text-[#85B7F1] size-12 animate-spin" />
           <div className="space-y-2 text-center">
-            <h1 className="font-rubik text-white text-2xl font-bold md:text-3xl">
+            <h1 className="font-display text-4xl text-white md:text-5xl">
               Verifying Email
             </h1>
             <p className="text-white/60 text-sm md:text-base">
@@ -166,7 +166,7 @@ export function EmailVerificationCard() {
   return (
     <AuthCardWrapper>
       <div className="space-y-2 text-center">
-        <h1 className="font-rubik text-white text-2xl font-bold md:text-3xl">
+        <h1 className="font-display text-4xl text-white md:text-5xl">
           Verify Your Email
         </h1>
         <p className="text-white/60 text-sm md:text-base">
@@ -186,7 +186,7 @@ export function EmailVerificationCard() {
               <InputOTPSlot
                 key={index}
                 index={index}
-                className="border-white/30 bg-white/10 text-white"
+                className="border-white/15 bg-white/[0.04] text-white"
               />
             ))}
           </InputOTPGroup>

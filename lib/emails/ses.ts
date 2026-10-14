@@ -5,10 +5,15 @@ import {
 } from "@aws-sdk/client-ses";
 import { render } from "@react-email/render";
 
+import { hackathonYear } from "@/config/site";
+
 import ApplicationReminderEmail from "@/components/emails/ApplicationReminderEmail";
 import ApplicationSubmittedEmail from "@/components/emails/ApplicationSubmittedEmail";
+import { APP_URL } from "@/components/emails/EmailShell";
 import HackathonPrepEmail from "@/components/emails/HackathonPrepEmail";
 import ResetPasswordEmail from "@/components/emails/ResetPasswordEmail";
+import TeamAcceptedEmail from "@/components/emails/TeamAcceptedEmail";
+import TeamRequestEmail from "@/components/emails/TeamRequestEmail";
 import WelcomeEmail from "@/components/emails/WelcomeEmail";
 
 const ses = new SESClient({
@@ -138,8 +143,7 @@ type WelcomeEmailProps = {
 export const sendWelcomeEmail = async (data: WelcomeEmailProps) => {
   const { name, email, subject, verificationCode, token } = data;
 
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3001";
-  const verificationUrl = `${baseUrl}/email-verification?token=${token}&code=${verificationCode}&email=${email}`;
+  const verificationUrl = `${APP_URL}/email-verification?token=${token}&code=${verificationCode}&email=${email}`;
 
   const body = await render(
     WelcomeEmail({
@@ -169,8 +173,7 @@ type ResetPasswordEmailProps = {
 export const sendResetPasswordEmail = async (data: ResetPasswordEmailProps) => {
   const { name, email, subject, token } = data;
 
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-  const resetUrl = `${baseUrl}/reset-password/${token}`;
+  const resetUrl = `${APP_URL}/reset-password/${token}`;
 
   const body = await render(
     ResetPasswordEmail({
@@ -216,6 +219,44 @@ export const sendApplicationSubmittedEmail = async (
   return result;
 };
 
+const teamPageUrl = () => `${APP_URL}/apply/teams`;
+
+export const sendTeamRequestEmail = async (data: {
+  to: string;
+  ownerName: string;
+  requesterName: string;
+  teamName: string;
+}) => {
+  const body = await render(
+    TeamRequestEmail({
+      ownerName: data.ownerName,
+      requesterName: data.requesterName,
+      teamName: data.teamName,
+      reviewUrl: teamPageUrl(),
+    }),
+  );
+  return sendEmail(
+    data.to,
+    `${data.requesterName} asked to join ${data.teamName}`,
+    body,
+  );
+};
+
+export const sendTeamAcceptedEmail = async (data: {
+  to: string;
+  name: string;
+  teamName: string;
+}) => {
+  const body = await render(
+    TeamAcceptedEmail({
+      name: data.name,
+      teamName: data.teamName,
+      teamUrl: teamPageUrl(),
+    }),
+  );
+  return sendEmail(data.to, `You're on ${data.teamName}`, body);
+};
+
 type HackathonPrepEmailProps = {
   name: string;
   email: string;
@@ -255,7 +296,7 @@ IMPORTANT LINKS:
 - Hacker Package: https://torpid-tuesday-6d4.notion.site/Hack-Canada-Hacker-Package-1805d88c3a21800198e9e0731d94dc3f
 - Discord Server: https://discord.gg/6sHskEpdpb
 - Event Schedule: https://docs.google.com/spreadsheets/d/1AVNb3k0e6ly5n9tv4BI1HLt_JrkNqfgZ3L1vhcU0vso/edit
-- Hacker Dashboard: https://app.hackcanada.org
+- Hacker Dashboard: ${APP_URL}
 - Project Submissions: https://dorahacks.io/hackathon/hackcanada/detail
 
 Questions? Email us at hi@hackcanada.org or message us on Discord.
@@ -266,7 +307,7 @@ See you soon!
 --
 Hack Canada | https://hackcanada.org
 2240 University Ave, Waterloo, ON N2K 0G3
-To unsubscribe, visit: https://app.hackcanada.org/unsubscribe`;
+To unsubscribe, visit: https://hackcanada.org/unsubscribe`;
 
 export const sendHackathonPrepEmail = async (data: HackathonPrepEmailProps) => {
   const { name, email, userId } = data;
@@ -330,13 +371,11 @@ export const sendApplicationReminderEmail = async (
     ? "Quick reminder about your Hack Canada application"
     : "Your Hack Canada application";
 
-  const htmlBody = await render(
-    ApplicationReminderEmail({ name, hasDraft }),
-  );
+  const htmlBody = await render(ApplicationReminderEmail({ name, hasDraft }));
 
   const textBody = hasDraft
-    ? `Hey ${name},\n\nWe noticed you started your Hack Canada hacker application but haven't submitted it yet. Your progress is saved, so you can pick up right where you left off.\n\nIt should only take a few more minutes to finish up and submit.\n\nFinish your application: https://app.hackcanada.org/applications/hacker\n\nCheers,\nThe Hack Canada Team`
-    : `Hey ${name},\n\nYou created a Hack Canada account a little while ago, but we haven't received a hacker application from you yet.\n\nIf you're still interested in joining us, the application only takes about 10 minutes. We'd love to have you.\n\nGo to your application: https://app.hackcanada.org/applications/hacker\n\nCheers,\nThe Hack Canada Team`;
+    ? `Hi ${name},\n\nYou started your Hack Canada ${hackathonYear} application but haven't submitted it yet. Your progress is saved, so you can pick up right where you left off.\n\nIt only takes a few more minutes to finish.\n\nFinish your application: ${APP_URL}/apply\n\nSee you soon,\nThe Hack Canada team\n\nThis address doesn't receive replies. Write to hi@hackcanada.org if you need us.`
+    : `Hi ${name},\n\nYou made a Hack Canada account a little while ago, but we haven't seen an application from you yet.\n\nIf you're still keen on Hack Canada ${hackathonYear}, applying only takes a few minutes. Come solo or bring your crew. We'd love to have you.\n\nStart your application: ${APP_URL}/apply\n\nSee you soon,\nThe Hack Canada team\n\nThis address doesn't receive replies. Write to hi@hackcanada.org if you need us.`;
 
   const command = new SendEmailCommand({
     Source: `Hack Canada <${process.env.AWS_SES_NO_REPLY_EMAIL!}>` || "",

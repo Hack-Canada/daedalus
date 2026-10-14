@@ -54,7 +54,7 @@ export const NORMAL_PROMPTS = {
   normalAnswer1:
     "You get a free plane ticket to anywhere, but you have to leave in one hour. Where are you going and what are you packing?",
   normalAnswer2:
-    "Walk us through one of the coolest projects you've built. Talk about whatever you want, but highlight the journey, the key decision you had to make, and how you went about building it. Feel free to include links!",
+    "Walk us through one of the coolest projects you've built. Talk about whatever you want, but highlight the journey, the key decision you had to make, and how you went about building it. Please provide links to your project if possible.",
 } as const;
 
 export const TEAM_PROMPTS = {

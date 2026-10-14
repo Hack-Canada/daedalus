@@ -120,13 +120,17 @@ export function TeamAnswers({
           <span className={promptNumber}>1</span>
           {TEAM_PROMPTS.mars}
         </label>
+        <p id="mars-hint" className="pl-11 text-white/50">
+          Everyone answers individually. Be creative, talk with your teammates,
+          and make sure your answers come together into a cohesive story.
+        </p>
         <Textarea
           id="mars-answer"
           value={mars}
           disabled={!canEdit || pending}
           rows={5}
           className={answerBox}
-          aria-describedby="mars-count"
+          aria-describedby="mars-hint mars-count"
           onChange={(event) => setMars(event.target.value)}
         />
         <div className="flex min-h-11 items-center justify-between gap-3">

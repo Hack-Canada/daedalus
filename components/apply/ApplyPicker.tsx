@@ -4,40 +4,38 @@ import { useState, type CSSProperties, type PointerEvent } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowRight } from "lucide-react";
 import { toast } from "sonner";
 
 import { ApplyTrack, TRACKS } from "@/config/apply";
+import starBeaver from "@/public/beaver-star.png";
+import laptopBeaver from "@/public/beaver-laptop.png";
+import moneyBeaver from "@/public/beaver-money.png";
+import businessBeaver from "@/public/beaver-business.png";
+import pencilBeaver from "@/public/beaver-pencil.png";
+import ideaBeaver from "@/public/beaver-idea.png";
 
 import { ApplyMark } from "./ApplyMark";
 
 type Track = (typeof TRACKS)[number];
 
-// Day, dusk, night: the hackcanada.org sky (#85B7F1) down to its navy (#043251).
+// Quick matches the application form; Normal and Team keep their blue themes.
 const THEMES: Record<
   ApplyTrack,
-  { panel: string; muted: string; button: string; ring: string }
+  { panel: string; muted: string }
 > = {
   quick: {
-    panel:
-      "bg-linear-to-b from-[#c4defb] via-[#9cc5f4] to-[#6fa6ea] text-[#043251]",
-    muted: "text-[#043251]/75",
-    button: "bg-[#043251] text-white",
-    ring: "focus-visible:outline-[#043251]",
+    panel: "bg-[#0a0a0f] text-white",
+    muted: "text-white",
   },
   normal: {
     panel:
       "bg-linear-to-b from-[#5f9be2] via-[#3c7bcc] to-[#1c58a1] text-white",
     muted: "text-white/80",
-    button: "bg-white text-[#043251]",
-    ring: "focus-visible:outline-white",
   },
   team: {
     panel:
       "bg-linear-to-b from-[#0d426d] via-[#062f52] to-[#031b31] text-white",
     muted: "text-white/75",
-    button: "bg-[#85B7F1] text-[#043251]",
-    ring: "focus-visible:outline-[#85B7F1]",
   },
 };
 
@@ -129,7 +127,7 @@ export function ApplyPicker({
         const theme = THEMES[track.id];
         const isCurrent = hasDraft && currentTrack === track.id;
         const action = !hasDraft ? "Start" : isCurrent ? "Continue" : "Switch";
-        const linkClass = `relative z-10 flex h-full min-h-11 w-full flex-col p-8 pt-20 text-left focus-visible:outline-2 focus-visible:outline-offset-[-12px] md:p-12 md:pt-24 ${theme.ring}`;
+        const linkClass = "relative z-10 flex h-full min-h-11 w-full flex-col p-8 pt-20 text-left outline-none md:p-12 md:pt-24";
 
         return (
           <section
@@ -138,7 +136,7 @@ export function ApplyPicker({
             onPointerMove={onPointerMove}
             onPointerLeave={onPointerLeave}
             style={{ animationDelay: `${index * 90}ms` }}
-            className={`${theme.panel} group animate-in fade-in fill-mode-both relative flex h-dvh snap-start overflow-hidden duration-700 motion-reduce:animate-none motion-reduce:transition-none lg:h-full lg:flex-1 lg:transition-[flex-grow,filter] lg:duration-700 lg:ease-[cubic-bezier(0.22,1,0.36,1)] lg:group-hover/picker:not-hover:brightness-90 lg:focus-within:flex-[1.3] lg:hover:flex-[1.3]`}
+            className={`${theme.panel} group animate-in fade-in fill-mode-both relative z-0 flex h-dvh origin-center snap-start overflow-hidden duration-700 motion-reduce:animate-none motion-reduce:transition-none lg:h-full lg:min-w-0 lg:flex-1 lg:transition-[scale,filter] lg:duration-700 lg:ease-[cubic-bezier(0.22,1,0.36,1)] lg:group-hover/picker:not-hover:brightness-90 lg:hover:z-10 lg:hover:scale-110`}
           >
             <Scenery id={track.id} />
             {isCurrent || !hasDraft ? (
@@ -198,7 +196,7 @@ function PanelCopy({
         >
           {track.description}
         </span>
-        {/* Team keeps an invisible line so the arrows stay level across cards. */}
+        {/* Keep the copy aligned across cards when Team has no joining note. */}
         <span
           aria-hidden={track.id === "team"}
           className={`mt-4 block text-sm italic ${theme.muted} ${track.id === "team" ? "invisible" : ""}`}
@@ -207,17 +205,7 @@ function PanelCopy({
         </span>
       </span>
 
-      <span className="flex items-center gap-3 text-base font-semibold">
-        <span
-          className={`flex size-12 items-center justify-center rounded-full shadow-lg transition-transform duration-500 ease-out group-hover:scale-110 ${theme.button}`}
-        >
-          <ArrowRight
-            className="size-5 -rotate-45 transition-transform duration-500 ease-out group-hover:translate-x-0.5 group-hover:rotate-0"
-            aria-hidden
-          />
-        </span>
-        <span className="sr-only">{action}</span>
-      </span>
+      <span className="sr-only">{action}</span>
     </>
   );
 }
@@ -239,7 +227,9 @@ const frame =
   "pointer-events-none absolute inset-0 transition-transform duration-700 ease-out motion-reduce:transition-none";
 // Art sits in the empty band above the copy, sized by viewport height.
 const stage = "absolute inset-x-0 top-[14%] flex justify-center";
-const art = "h-[min(24dvh,13rem)] w-auto";
+const art = "h-[min(30dvh,16rem)] w-auto max-w-full object-contain";
+const teamBeaverMotion =
+  "transition-transform duration-500 ease-out motion-reduce:transition-none";
 
 function Scenery({ id }: { id: ApplyTrack }) {
   if (id === "quick") {
@@ -251,13 +241,11 @@ function Scenery({ id }: { id: ApplyTrack }) {
         </div>
         <div className={frame} style={parallax(22)}>
           <div className={stage}>
-            <div className="motion-safe:animate-bob">
+            <div className="motion-safe:animate-bob flex w-4/5 justify-center">
               <Image
-                src="/paper-plane.svg"
+                src={starBeaver}
                 alt=""
-                width={200}
-                height={150}
-                className="h-[min(18dvh,10rem)] w-auto drop-shadow-[0_12px_18px_rgba(4,50,81,0.18)] transition-transform duration-700 ease-out group-hover:translate-x-3 group-hover:-translate-y-3"
+                className={`${art} transition-transform duration-700 ease-out group-hover:translate-x-3 group-hover:-translate-y-3`}
               />
             </div>
           </div>
@@ -270,20 +258,28 @@ function Scenery({ id }: { id: ApplyTrack }) {
     return (
       <div aria-hidden>
         <div className={frame} style={parallax(8)}>
-          <Cloud className="motion-safe:animate-drift absolute top-[16%] left-[6%] w-24 text-white/30 [animation-delay:-4s]" />
-          <Cloud className="motion-safe:animate-drift absolute top-[36%] right-[4%] w-32 text-white/20 [animation-delay:-14s]" />
+          {STARS.map(([left, top, size, delay]) => (
+            <span
+              key={`${left}-${top}`}
+              className="motion-safe:animate-twinkle absolute rounded-full bg-white"
+              style={{
+                left: `${left}%`,
+                top: `${top}%`,
+                width: size,
+                height: size,
+                animationDelay: `${delay}s`,
+              }}
+            />
+          ))}
         </div>
         <div className={frame} style={parallax(22)}>
           <div className={stage}>
-            <div className="motion-safe:animate-bob relative flex flex-col items-center [animation-delay:-2s]">
+            <div className="motion-safe:animate-bob flex w-4/5 justify-center [animation-delay:-2s]">
               <Image
-                src="/glacier-small.svg"
+                src={laptopBeaver}
                 alt=""
-                width={193}
-                height={115}
-                className="h-[min(14dvh,8rem)] w-auto transition-transform duration-500 group-hover:-translate-y-1"
+                className={`${art} transition-transform duration-500 group-hover:-translate-y-1`}
               />
-              <span className="mt-2 h-2 w-3/4 rounded-full bg-white/20 blur-sm" />
             </div>
           </div>
         </div>
@@ -293,31 +289,32 @@ function Scenery({ id }: { id: ApplyTrack }) {
 
   return (
     <div aria-hidden>
-      <div className={frame} style={parallax(6)}>
-        {STARS.map(([left, top, size, delay]) => (
-          <span
-            key={`${left}-${top}`}
-            className="motion-safe:animate-twinkle absolute rounded-full bg-white"
-            style={{
-              left: `${left}%`,
-              top: `${top}%`,
-              width: size,
-              height: size,
-              animationDelay: `${delay}s`,
-            }}
-          />
-        ))}
-      </div>
       <div className={frame} style={parallax(20)}>
         <div className={stage}>
-          <div className="relative">
-            <div className="motion-safe:animate-flicker absolute -inset-12 rounded-full bg-[radial-gradient(circle,rgba(251,146,60,0.4),transparent_65%)]" />
+          <div className="motion-safe:animate-bob relative aspect-[6/5] w-[min(88%,43.2dvh,24rem)] origin-bottom transition-transform duration-500 group-hover:scale-105">
             <Image
-              src="/fire.webp"
+              src={businessBeaver}
               alt=""
-              width={310}
-              height={473}
-              className={`${art} relative origin-bottom transition-transform duration-500 group-hover:scale-105`}
+              sizes="(min-width: 1024px) 18vw, 55vw"
+              className={`absolute top-0 left-[8%] h-auto w-[48%] motion-safe:group-hover:translate-x-[12%] motion-safe:group-hover:translate-y-[10%] ${teamBeaverMotion}`}
+            />
+            <Image
+              src={ideaBeaver}
+              alt=""
+              sizes="(min-width: 1024px) 18vw, 55vw"
+              className={`absolute top-[2%] right-[3%] h-auto w-[48%] motion-safe:group-hover:-translate-x-[12%] motion-safe:group-hover:translate-y-[10%] ${teamBeaverMotion}`}
+            />
+            <Image
+              src={pencilBeaver}
+              alt=""
+              sizes="(min-width: 1024px) 18vw, 55vw"
+              className={`absolute bottom-[1%] left-[2%] z-10 h-auto w-1/2 motion-safe:group-hover:translate-x-[12%] motion-safe:group-hover:-translate-y-[10%] ${teamBeaverMotion}`}
+            />
+            <Image
+              src={moneyBeaver}
+              alt=""
+              sizes="(min-width: 1024px) 18vw, 55vw"
+              className={`absolute right-[-4%] bottom-[-2%] z-20 h-auto w-[62%] motion-safe:group-hover:-translate-x-[10%] motion-safe:group-hover:-translate-y-[12%] ${teamBeaverMotion}`}
             />
           </div>
         </div>

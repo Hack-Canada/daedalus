@@ -40,22 +40,22 @@ export function UploadResume({ control, watch }: UploadResumeProps) {
             {!resumeUrl && (
               <button
                 type="button"
-                className="block w-full cursor-pointer rounded-xl border-2 border-dashed border-white/20 bg-white/5 p-6 text-center transition-all hover:border-primary/40 hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-50"
+                className="block w-full cursor-pointer rounded-xl border-2 border-dashed border-white/20 bg-white/5 p-6 text-center transition-all hover:border-[#85B7F1]/40 hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-50"
                 onClick={() =>
                   document.getElementById("resume-upload")?.click()
                 }
                 disabled={isPending}
                 onDragOver={(e) => {
                   e.preventDefault();
-                  e.currentTarget.classList.add("bg-white/10", "border-primary/40");
+                  e.currentTarget.classList.add("bg-white/10", "border-[#85B7F1]/40");
                 }}
                 onDragLeave={(e) => {
                   e.preventDefault();
-                  e.currentTarget.classList.remove("bg-white/10", "border-primary/40");
+                  e.currentTarget.classList.remove("bg-white/10", "border-[#85B7F1]/40");
                 }}
                 onDrop={(e) => {
                   e.preventDefault();
-                  e.currentTarget.classList.remove("bg-white/10", "border-primary/40");
+                  e.currentTarget.classList.remove("bg-white/10", "border-[#85B7F1]/40");
                   if (e.dataTransfer.files[0]) {
                     handleFileUpload(
                       e.dataTransfer.files[0],
@@ -84,7 +84,7 @@ export function UploadResume({ control, watch }: UploadResumeProps) {
                     {isPending ? (
                       <span className="flex items-center justify-center gap-2">
                         <svg
-                          className="h-4 w-4 animate-spin text-primary"
+                          className="h-4 w-4 animate-spin text-[#85B7F1]"
                           xmlns="http://www.w3.org/2000/svg"
                           fill="none"
                           viewBox="0 0 24 24"
@@ -108,7 +108,7 @@ export function UploadResume({ control, watch }: UploadResumeProps) {
                     ) : (
                       <>
                         Drag and drop your resume here, or{" "}
-                        <span className="font-medium text-primary">
+                        <span className="font-medium text-[#85B7F1]">
                           click to upload
                         </span>
                       </>
@@ -138,12 +138,12 @@ export function UploadResume({ control, watch }: UploadResumeProps) {
                       href={previewUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-sm font-medium text-primary hover:text-primaryLight hover:underline"
+                      className="text-sm font-medium text-[#85B7F1] hover:text-[#a9cdf6] hover:underline"
                     >
                       View Resume
                     </a>
                   ) : (
-                    <OpenResumeButton className="text-sm font-medium text-primary hover:text-primaryLight hover:underline disabled:opacity-50" />
+                    <OpenResumeButton className="text-sm font-medium text-[#85B7F1] hover:text-[#a9cdf6] hover:underline disabled:opacity-50" />
                   )}
                 </div>
                 <div className="flex items-center gap-2">

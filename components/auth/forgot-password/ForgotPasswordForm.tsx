@@ -17,6 +17,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
 
 type Props = {};
 
@@ -73,10 +74,10 @@ const ForgotPasswordForm = ({}: Props) => {
             <FormItem className="space-y-2">
               <FormLabel className="text-white/90 font-medium">Email Address</FormLabel>
               <FormControl>
-                <input
+                <Input
                   {...field}
                   placeholder="you@example.com"
-                  className="flex h-11 w-full rounded-lg border border-white/30 bg-white/10 px-4 py-2.5 lowercase text-white shadow-lg shadow-black/20 backdrop-blur-md placeholder:capitalize placeholder:text-white/40 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-white/50 focus-visible:border-white/50 disabled:cursor-not-allowed disabled:opacity-50 transition-all"
+                  className="h-11 lowercase"
                 />
               </FormControl>
               <FormMessage className="text-red-300" />

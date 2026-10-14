@@ -11,7 +11,7 @@ import {
 } from "@react-email/components";
 
 const SITE_URL = "https://hackcanada.org";
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://app.hackcanada.org";
+export const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://app.hackcanada.org";
 
 const navy = "#043251";
 const ink = "#102b3d";

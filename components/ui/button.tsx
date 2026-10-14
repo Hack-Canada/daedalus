@@ -11,19 +11,19 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default:
-          "bg-primary text-white hover:bg-blue-400 hover:shadow-[0_0_25px_rgba(30,144,255,0.4)] focus-visible:ring-blue-500 focus-visible:ring-offset-[#0a0a0f]",
+          "bg-[#85B7F1] text-[#043251] hover:bg-[#a9cdf6] focus-visible:ring-[#85B7F1] focus-visible:ring-offset-[#0a0a0f]",
         primary:
           "px-8 py-2 bg-linear-to-b from-blue-500 to-blue-600 shadow-lg shadow-primary/25 text-white hover:shadow-[0_0_30px_rgba(30,144,255,0.5)] hover:from-blue-400 hover:to-blue-500 focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-[#0a0a0f] duration-200",
         destructive:
           "bg-error text-white hover:bg-red-500 hover:shadow-[0_0_20px_rgba(244,67,54,0.4)] focus-visible:ring-error/70 focus-visible:ring-offset-[#0a0a0f]",
         outline:
-          "border border-white/20 bg-white/5 text-white/80 hover:bg-white/10 hover:text-primary hover:border-primary/50 hover:shadow-[0_0_15px_rgba(30,144,255,0.2)] focus-visible:ring-primary focus-visible:ring-offset-[#0a0a0f]",
+          "border border-white/15 bg-white/5 text-white/80 hover:bg-white/10 hover:text-white hover:border-white/30 focus-visible:ring-[#85B7F1] focus-visible:ring-offset-[#0a0a0f]",
         secondary:
           "bg-secondary/20 text-secondary border border-secondary/30 hover:bg-secondary/30 hover:shadow-[0_0_15px_rgba(255,167,38,0.3)] focus-visible:ring-secondary focus-visible:ring-offset-[#0a0a0f]",
         ghost:
-          "text-white/60 hover:bg-white/10 hover:text-primary focus-visible:ring-primary focus-visible:ring-offset-[#0a0a0f]",
-        link: "text-primary underline-offset-4 hover:underline hover:text-primaryLight focus-visible:ring-primary",
-        auth: "rounded-sm bg-linear-to-r from-[#132C57] to-[#0A1F44] text-white shadow-md hover:shadow-[0_0_20px_rgba(10,31,68,0.6)] hover:tracking-widest focus-visible:ring-[#0A1F44]",
+          "text-white/60 hover:bg-white/[0.06] hover:text-white focus-visible:ring-[#85B7F1] focus-visible:ring-offset-[#0a0a0f]",
+        link: "text-[#85B7F1] underline-offset-4 hover:underline hover:text-[#a9cdf6] focus-visible:ring-[#85B7F1]",
+        auth: "rounded-full bg-[#85B7F1] text-[#043251] hover:bg-[#a9cdf6] focus-visible:ring-[#85B7F1] focus-visible:ring-offset-[#0a0a0f]",
         unstyled: "",
       },
       size: {

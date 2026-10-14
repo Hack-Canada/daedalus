@@ -1,10 +1,14 @@
+import { ApplyMark } from "@/components/apply/ApplyMark";
 import { EmptyPage } from "@/components/EmptyPage";
 
 export default function NotFound() {
   return (
-    <EmptyPage
-      title="404 - Page Not Found"
-      message="Oops! The page you're looking for doesn't exist."
-    />
+    <>
+      <ApplyMark />
+      <EmptyPage
+        title="Page not found"
+        message="We couldn't find that page. The link might be old or mistyped."
+      />
+    </>
   );
 }

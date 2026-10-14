@@ -1,6 +1,7 @@
 import { headers } from "next/headers";
 import Image from "next/image";
 import { redirect } from "next/navigation";
+import { getCurrentUser } from "@/auth";
 
 import { getPhaseState } from "@/lib/phase";
 import Navbar from "@/components/Navbar";
@@ -12,10 +13,21 @@ type Props = {
 };
 
 const EARLY_PHASES = new Set(["pre-registration", "registration-open"]);
+const UNDECIDED = new Set(["not_applied", "pending"]);
+const STAFF = new Set(["admin", "organizer", "mentor", "volunteer"]);
 
 const DashboardLayout = async ({ children }: Props) => {
-  const { phase } = await getPhaseState();
-  const early = EARLY_PHASES.has(phase);
+  const [{ phase }, user] = await Promise.all([
+    getPhaseState(),
+    getCurrentUser(),
+  ]);
+  // Applicants stay on /apply until their decision is released (status leaves pending).
+  const early =
+    EARLY_PHASES.has(phase) ||
+    (phase === "pre-event" &&
+      !!user &&
+      UNDECIDED.has(user.status) &&
+      !STAFF.has(user.role));
 
   if (early) {
     const path = (await headers()).get("x-pathname") ?? "";

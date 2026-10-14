@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-import SignInCard from "@/components/auth/sign-in/SignInCard";
+import { AuthSwitcher } from "@/components/auth/AuthSwitcher";
 
 export const metadata: Metadata = {
   title: "Sign In",
@@ -15,7 +15,7 @@ export const metadata: Metadata = {
 };
 
 const SignInPage = () => {
-  return <SignInCard />;
+  return <AuthSwitcher />;
 };
 
 export default SignInPage;

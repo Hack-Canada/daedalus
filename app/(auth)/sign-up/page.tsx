@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-import SignUpCard from "@/components/auth/sign-up/SignUpCard";
+import { AuthSwitcher } from "@/components/auth/AuthSwitcher";
 
 export const metadata: Metadata = {
   title: "Sign Up - Join Hack Canada",
@@ -16,7 +16,7 @@ export const metadata: Metadata = {
 };
 
 const SignUpPage = () => {
-  return <SignUpCard />;
+  return <AuthSwitcher />;
 };
 
 export default SignUpPage;

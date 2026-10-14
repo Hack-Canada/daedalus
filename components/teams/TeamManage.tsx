@@ -134,41 +134,6 @@ export function TeamManage({
             Applications are closed, so the team can no longer change.
           </p>
         )}
-        {team.isOwner && team.pendingCount > 0 && (
-          <button
-            type="button"
-            onClick={openRequests}
-            className="group flex w-full items-center gap-4 rounded-2xl bg-sky-300/10 px-5 py-4 text-left ring-1 ring-sky-300/30 transition-colors hover:bg-sky-300/15 focus-visible:outline focus-visible:outline-2 focus-visible:outline-white"
-          >
-            <span className="relative grid size-11 shrink-0 place-items-center rounded-full bg-sky-300/20">
-              <Inbox className="size-5 text-sky-100" aria-hidden />
-              {unseen > 0 && (
-                <span
-                  className="absolute -top-0.5 -right-0.5 flex size-3"
-                  aria-hidden
-                >
-                  <span className="absolute inline-flex size-full animate-ping rounded-full bg-sky-300 opacity-75 motion-reduce:animate-none" />
-                  <span className="relative size-3 rounded-full border-2 border-[#0a0a0f] bg-sky-300" />
-                </span>
-              )}
-            </span>
-            <span className="min-w-0 flex-1">
-              <span className="block text-lg font-medium text-white">
-                {team.pendingCount === 1
-                  ? "1 person wants to join"
-                  : `${team.pendingCount} people want to join`}
-              </span>
-              <span className="block text-sky-100/70">
-                {unseen > 0 ? `${unseen} new. ` : ""}Review and accept or
-                decline.
-              </span>
-            </span>
-            <ArrowRight
-              className="size-5 text-sky-100 transition-transform duration-200 group-hover:translate-x-0.5"
-              aria-hidden
-            />
-          </button>
-        )}
         <TeamAnswers team={team} open={open} />
       </div>
 
@@ -328,14 +293,33 @@ export function TeamManage({
               </li>
             ))}
           </ul>
-          {team.isOwner && team.pendingCount === 0 && (
+          {team.isOwner && (
             <button
               type="button"
               onClick={openRequests}
-              className="flex items-center gap-2 text-sm text-white/55 transition-colors hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-white"
+              className={`group flex cursor-pointer items-center gap-2 text-sm transition-colors hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-white ${team.pendingCount > 0 ? "text-[#85B7F1]" : "text-white/55"}`}
             >
-              <Inbox className="size-4" aria-hidden />
-              No join requests yet
+              <span className="relative">
+                <Inbox className="size-4" aria-hidden />
+                {unseen > 0 && (
+                  <span
+                    className="absolute -top-1 -right-1 flex size-2"
+                    aria-hidden
+                  >
+                    <span className="absolute inline-flex size-full animate-ping rounded-full bg-sky-300 opacity-75 motion-reduce:animate-none" />
+                    <span className="relative size-2 rounded-full bg-sky-300" />
+                  </span>
+                )}
+              </span>
+              {team.pendingCount === 0
+                ? "No join requests yet"
+                : `${team.pendingCount} join ${team.pendingCount === 1 ? "request" : "requests"}${unseen > 0 ? `, ${unseen} new` : ""}`}
+              {team.pendingCount > 0 && (
+                <ArrowRight
+                  className="size-3.5 transition-transform duration-200 group-hover:translate-x-0.5"
+                  aria-hidden
+                />
+              )}
             </button>
           )}
         </section>

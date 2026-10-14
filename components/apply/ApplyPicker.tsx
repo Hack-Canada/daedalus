@@ -222,7 +222,7 @@ function PanelCopy({
   );
 }
 
-function Cloud({ className }: { className: string }) {
+export function Cloud({ className }: { className: string }) {
   return (
     <svg
       viewBox="0 0 120 50"

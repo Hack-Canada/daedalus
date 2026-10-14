@@ -103,7 +103,7 @@ const SignInForm = ({}: Props) => {
                   {...field}
                   autoFocus={true}
                   placeholder="you@example.com"
-                  className="flex h-11 w-full rounded-lg border border-white/30 bg-white/10 px-4 py-2.5 text-white lowercase shadow-lg shadow-black/20 backdrop-blur-md transition-all file:font-medium placeholder:text-white/40 placeholder:capitalize focus-visible:border-white/50 focus-visible:ring-2 focus-visible:ring-white/50 focus-visible:outline-hidden disabled:cursor-not-allowed disabled:opacity-50"
+                  className="h-11 lowercase"
                 />
               </FormControl>
               <FormMessage className="text-red-300" />
@@ -124,7 +124,7 @@ const SignInForm = ({}: Props) => {
                   {...field}
                   type="password"
                   placeholder="Enter your password"
-                  className="flex h-11 w-full rounded-lg border border-white/30 bg-white/10 px-4 py-2.5 text-white shadow-lg shadow-black/20 backdrop-blur-md transition-all file:font-medium placeholder:text-white/40 focus-visible:border-white/50 focus-visible:ring-2 focus-visible:ring-white/50 focus-visible:outline-hidden disabled:cursor-not-allowed disabled:opacity-50"
+                  className="h-11"
                 />
               </FormControl>
               <FormMessage className="text-red-300" />

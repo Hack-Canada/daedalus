@@ -102,7 +102,7 @@ export default function NewCodeForm() {
                 <Input
                   {...field}
                   placeholder="you@example.com"
-                  className="flex h-11 w-full rounded-lg border border-white/30 bg-white/10 px-4 py-2.5 lowercase shadow-lg shadow-black/20 backdrop-blur-md text-white placeholder:text-white/40 placeholder:capitalize focus-visible:ring-2 focus-visible:ring-white/50 focus-visible:border-white/50 focus-visible:outline-hidden disabled:cursor-not-allowed disabled:opacity-50 transition-all"
+                  className="h-11 lowercase"
                   disabled={isPending || cooldown > 0}
                 />
               </FormControl>

@@ -182,7 +182,7 @@ export function ApplySubmitted({
                   </>
                 )}
                 <Link
-                  href="/applications/hacker/review"
+                  href="/apply/review"
                   className="inline-block text-white/60 underline underline-offset-4 transition-colors hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-white"
                 >
                   Review your answers

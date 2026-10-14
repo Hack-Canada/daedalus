@@ -228,6 +228,8 @@ const frame =
 // Art sits in the empty band above the copy, sized by viewport height.
 const stage = "absolute inset-x-0 top-[14%] flex justify-center";
 const art = "h-[min(30dvh,16rem)] w-auto max-w-full object-contain";
+const teamBeaverMotion =
+  "transition-transform duration-500 ease-out motion-reduce:transition-none";
 
 function Scenery({ id }: { id: ApplyTrack }) {
   if (id === "quick") {
@@ -294,25 +296,25 @@ function Scenery({ id }: { id: ApplyTrack }) {
               src={businessBeaver}
               alt=""
               sizes="(min-width: 1024px) 18vw, 55vw"
-              className="absolute top-0 left-[8%] h-auto w-[48%]"
+              className={`absolute top-0 left-[8%] h-auto w-[48%] motion-safe:group-hover:translate-x-[12%] motion-safe:group-hover:translate-y-[10%] ${teamBeaverMotion}`}
             />
             <Image
               src={ideaBeaver}
               alt=""
               sizes="(min-width: 1024px) 18vw, 55vw"
-              className="absolute top-[2%] right-[3%] h-auto w-[48%]"
+              className={`absolute top-[2%] right-[3%] h-auto w-[48%] motion-safe:group-hover:-translate-x-[12%] motion-safe:group-hover:translate-y-[10%] ${teamBeaverMotion}`}
             />
             <Image
               src={pencilBeaver}
               alt=""
               sizes="(min-width: 1024px) 18vw, 55vw"
-              className="absolute bottom-[1%] left-[2%] z-10 h-auto w-1/2"
+              className={`absolute bottom-[1%] left-[2%] z-10 h-auto w-1/2 motion-safe:group-hover:translate-x-[12%] motion-safe:group-hover:-translate-y-[10%] ${teamBeaverMotion}`}
             />
             <Image
               src={moneyBeaver}
               alt=""
               sizes="(min-width: 1024px) 18vw, 55vw"
-              className="absolute right-[-4%] bottom-[-2%] z-20 h-auto w-[62%]"
+              className={`absolute right-[-4%] bottom-[-2%] z-20 h-auto w-[62%] motion-safe:group-hover:-translate-x-[10%] motion-safe:group-hover:-translate-y-[12%] ${teamBeaverMotion}`}
             />
           </div>
         </div>

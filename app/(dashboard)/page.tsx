@@ -7,10 +7,6 @@ import { UnauthorizedState } from "@/components/dashboard/UnauthorizedState";
 export const metadata: Metadata = {
   title: "Hacker Dashboard",
   description: "Your Hack Canada Hacker Portal dashboard. Access your application status, hacker package, QR code, profile, and all event information in one place.",
-  openGraph: {
-    title: "Hack Canada Hacker Dashboard | HC Portal",
-    description: "Manage your Hack Canada hackathon experience. View application status, download hacker resources, and connect with the community.",
-  },
   keywords: [
     "Hack Canada dashboard",
     "HC dashboard",

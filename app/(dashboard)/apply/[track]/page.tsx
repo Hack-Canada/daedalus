@@ -18,7 +18,7 @@ type Props = {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { track } = await params;
   const title = TRACKS.find((item) => item.id === track)?.title ?? "Apply";
-  return { title: `${title} - Hack Canada` };
+  return { title };
 }
 
 export default async function ApplyTrackPage({ params }: Props) {

@@ -6,7 +6,7 @@ import Script from "next/script";
 import { auth } from "@/auth";
 import { SessionProvider } from "next-auth/react";
 
-import { hackathonYear, siteConfig } from "@/config/site";
+import { eventVenue, hackathonYear, siteConfig } from "@/config/site";
 import { getActiveBanners } from "@/lib/db/queries/banner";
 import { fredoka, londrina, rubik } from "@/lib/fonts";
 import { getPhaseState } from "@/lib/phase";
@@ -24,10 +24,11 @@ export const metadata: Metadata = {
   description: siteConfig.description,
   metadataBase: siteConfig.metadataBase,
   openGraph: siteConfig.openGraph,
+  twitter: siteConfig.twitter,
   keywords: siteConfig.keywords,
   robots: siteConfig.robots,
   alternates: {
-    canonical: "https://app.hackcanada.org",
+    canonical: "./",
   },
 };
 
@@ -39,56 +40,51 @@ export default async function RootLayout({
   const session = await auth();
   const banners = await getActiveBanners();
   const phase = await getPhaseState();
-  const eventDate = new Date(phase.dates.eventStart);
+  const site = siteConfig.metadataBase.origin;
+  const socials = [
+    "https://hackcanada.org",
+    "https://www.linkedin.com/company/hack-canada/",
+    "https://www.instagram.com/hackcanada/",
+    "https://x.com/hack_canada_",
+  ];
+  const organization = {
+    "@type": "Organization",
+    name: "Hack Canada",
+    url: "https://hackcanada.org",
+    logo: `${site}/logo-circle.png`,
+    sameAs: socials,
+  };
 
   // Structured data for SEO
   const structuredData = {
     "@context": "https://schema.org",
     "@type": "Event",
     name: `Hack Canada ${hackathonYear}`,
-    description:
-      "Canada's premier student hackathon bringing together 500+ innovators, developers, and creators for 36 hours of building, learning, and networking.",
-    startDate: eventDate.toISOString(),
-    endDate: new Date(eventDate.getTime() + 36 * 60 * 60 * 1000).toISOString(),
+    description: siteConfig.description,
+    startDate: phase.dates.eventStart,
+    endDate: phase.dates.eventEnd,
     eventStatus: "https://schema.org/EventScheduled",
     eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
     location: {
       "@type": "Place",
-      name: "Wilfrid Laurier University",
+      name: eventVenue,
       address: {
         "@type": "PostalAddress",
-        streetAddress: "75 University Ave W",
-        addressLocality: "Waterloo",
+        addressLocality: "Toronto",
         addressRegion: "ON",
-        postalCode: "N2L 3C5",
         addressCountry: "CA",
       },
     },
-    organizer: {
-      "@type": "Organization",
-      name: "Hackathons Canada",
-      url: "https://hackcanada.org",
-      logo: "https://app.hackcanada.org/logo.webp",
-      sameAs: [
-        "https://discord.gg/hackathonscanada",
-        "https://instagram.com/hackathonscanada",
-        "https://linkedin.com/company/hackathons-canada",
-      ],
-    },
+    organizer: organization,
     offers: {
       "@type": "Offer",
       price: "0",
       priceCurrency: "CAD",
       availability: "https://schema.org/InStock",
-      url: "https://app.hackcanada.org/applications",
-      validFrom: new Date().toISOString(),
+      url: `${site}/apply`,
     },
-    performer: {
-      "@type": "Organization",
-      name: "Hackathons Canada",
-    },
-    image: "https://app.hackcanada.org/opengraph-image.png",
-    url: "https://app.hackcanada.org",
+    image: `${site}/opengraph-image`,
+    url: site,
   };
 
   const websiteStructuredData = {
@@ -96,29 +92,14 @@ export default async function RootLayout({
     "@type": "WebSite",
     name: "Hack Canada Hacker Portal",
     alternateName: ["HC Hacker Portal", "Hack Canada Portal", "HC Portal"],
-    url: "https://app.hackcanada.org",
-    description:
-      "Official hacker portal for Hack Canada - Apply, manage your application, and access all hackathon resources.",
-    potentialAction: {
-      "@type": "SearchAction",
-      target: {
-        "@type": "EntryPoint",
-        urlTemplate:
-          "https://app.hackcanada.org/applications?q={search_term_string}",
-      },
-      "query-input": "required name=search_term_string",
-    },
+    url: site,
+    description: siteConfig.description,
   };
 
   const organizationStructuredData = {
     "@context": "https://schema.org",
-    "@type": "Organization",
-    name: "Hack Canada",
+    ...organization,
     alternateName: "HC",
-    url: "https://app.hackcanada.org",
-    logo: "https://app.hackcanada.org/logo.webp",
-    description:
-      "Canada's premier student hackathon and hacker community with 3000+ members across the country.",
     foundingDate: "2024",
     contactPoint: {
       "@type": "ContactPoint",
@@ -127,7 +108,6 @@ export default async function RootLayout({
       areaServed: "CA",
       availableLanguage: ["English", "French"],
     },
-    sameAs: ["https://hackcanada.org", "https://discord.gg/hackathonscanada"],
   };
 
   return (
@@ -149,7 +129,6 @@ export default async function RootLayout({
             __html: JSON.stringify(organizationStructuredData),
           }}
         />
-        <link rel="canonical" href="https://app.hackcanada.org" />
       </head>
       <body className={cn("", fredoka.className, rubik.variable, londrina.variable)}>
         <PhaseProvider value={phase}>

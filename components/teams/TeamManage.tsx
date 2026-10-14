@@ -207,6 +207,9 @@ export function TeamManage({
               {team.members.length} of {MAX_TEAM_SIZE}
             </span>
           </h2>
+          <p className="-mt-1 text-xs text-white/45">
+            We review teams as a whole, so your whole team gets in together.
+          </p>
           <ul className="space-y-2">
             {team.members.map((member, index) => (
               <li

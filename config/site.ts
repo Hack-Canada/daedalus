@@ -1,24 +1,27 @@
 export const hackathonYear = 2027;
 
+// ponytail: display copy only. The real timestamps live in the eventConfig row.
+export const eventDatesLabel = "January 8–10, 2027";
+export const eventVenue = "University of Toronto";
+
+const description = `Apply to Hack Canada ${hackathonYear}, an in-person student hackathon at the ${eventVenue} on ${eventDatesLabel}. Apply solo or with your team, and follow your application here.`;
+
 export const siteConfig = {
   metadataBase: new URL("https://app.hackcanada.org"),
   title: `Hack Canada ${hackathonYear}`,
-  description:
-    "Official Hack Canada Hacker Portal - Apply to Canada's premier hackathon, manage your application, access your hacker package, and join 500+ innovators. HC Hacker Portal for Hack Canada applications, RSVP, and event registration.",
+  description,
   openGraph: {
-    title: `Hack Canada ${hackathonYear} Hacker Portal | HC Applications`,
-    description: `Join Hack Canada ${hackathonYear}! Apply through the official hacker portal, submit your hackathon application, and be part of Canada's biggest student hackathon community.`,
+    title: `Apply to Hack Canada ${hackathonYear}`,
+    description,
     type: "website",
     locale: "en_CA",
-    siteName: "Hack Canada Hacker Portal",
-    images: [
-      {
-        url: "/opengraph-image.png",
-        width: 1500,
-        height: 1000,
-        alt: `Hack Canada ${hackathonYear} Hacker Portal - Apply Now`,
-      },
-    ],
+    siteName: "Hack Canada",
+  },
+  twitter: {
+    card: "summary_large_image" as const,
+    site: "@hack_canada_",
+    title: `Apply to Hack Canada ${hackathonYear}`,
+    description,
   },
   keywords: [
     // Primary brand keywords
@@ -42,15 +45,12 @@ export const siteConfig = {
     "Canadian hackathon",
     "Canada hackathon 2027",
     "hackathon Ontario",
-    "hackathon Waterloo",
     "hackathon Toronto",
-    "Waterloo hackathon",
     "Toronto hackathon",
 
     // University-specific keywords
-    "Wilfrid Laurier hackathon",
-    "Laurier hackathon",
-    "WLU hackathon",
+    "University of Toronto hackathon",
+    "UofT hackathon",
     "university hackathon Canada",
     "student hackathon Canada",
 

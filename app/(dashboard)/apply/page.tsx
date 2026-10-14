@@ -12,7 +12,7 @@ import { ApplySubmitted } from "@/components/apply/ApplySubmitted";
 import { EmptyPage } from "@/components/EmptyPage";
 
 export const metadata: Metadata = {
-  title: "Apply - Hack Canada",
+  title: "Apply",
   description: "Choose a Quick, Normal, or Team application for Hack Canada.",
 };
 

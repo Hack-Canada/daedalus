@@ -36,7 +36,7 @@ export function MLHStep({ control }: MLHStepProps) {
                   href="https://github.com/MLH/mlh-policies/blob/main/code-of-conduct.md"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-primary underline"
+                  className="text-[#85B7F1] underline"
                 >
                   MLH Code of Conduct
                 </a>
@@ -68,7 +68,7 @@ export function MLHStep({ control }: MLHStepProps) {
                   href="https://github.com/MLH/mlh-policies/blob/main/privacy-policy.md"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-primary underline"
+                  className="text-[#85B7F1] underline"
                 >
                   MLH Privacy Policy
                 </a>
@@ -77,7 +77,7 @@ export function MLHStep({ control }: MLHStepProps) {
                   href="https://github.com/MLH/mlh-policies/blob/main/contest-terms.md"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-primary underline"
+                  className="text-[#85B7F1] underline"
                 >
                   MLH Contest Terms and Conditions
                 </a>{" "}
@@ -86,7 +86,7 @@ export function MLHStep({ control }: MLHStepProps) {
                   href="https://github.com/MLH/mlh-policies/blob/main/privacy-policy.md"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-primary underline"
+                  className="text-[#85B7F1] underline"
                 >
                   MLH Privacy Policy
                 </a>

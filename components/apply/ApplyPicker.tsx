@@ -10,6 +10,9 @@ import { ApplyTrack, TRACKS } from "@/config/apply";
 import starBeaver from "@/public/beaver-star.png";
 import laptopBeaver from "@/public/beaver-laptop.png";
 import moneyBeaver from "@/public/beaver-money.png";
+import businessBeaver from "@/public/beaver-business.png";
+import pencilBeaver from "@/public/beaver-pencil.png";
+import ideaBeaver from "@/public/beaver-idea.png";
 
 import { ApplyMark } from "./ApplyMark";
 
@@ -253,8 +256,19 @@ function Scenery({ id }: { id: ApplyTrack }) {
     return (
       <div aria-hidden>
         <div className={frame} style={parallax(8)}>
-          <Cloud className="motion-safe:animate-drift absolute top-[16%] left-[6%] w-24 text-white/30 [animation-delay:-4s]" />
-          <Cloud className="motion-safe:animate-drift absolute top-[36%] right-[4%] w-32 text-white/20 [animation-delay:-14s]" />
+          {STARS.map(([left, top, size, delay]) => (
+            <span
+              key={`${left}-${top}`}
+              className="motion-safe:animate-twinkle absolute rounded-full bg-white"
+              style={{
+                left: `${left}%`,
+                top: `${top}%`,
+                width: size,
+                height: size,
+                animationDelay: `${delay}s`,
+              }}
+            />
+          ))}
         </div>
         <div className={frame} style={parallax(22)}>
           <div className={stage}>
@@ -273,28 +287,32 @@ function Scenery({ id }: { id: ApplyTrack }) {
 
   return (
     <div aria-hidden>
-      <div className={frame} style={parallax(6)}>
-        {STARS.map(([left, top, size, delay]) => (
-          <span
-            key={`${left}-${top}`}
-            className="motion-safe:animate-twinkle absolute rounded-full bg-white"
-            style={{
-              left: `${left}%`,
-              top: `${top}%`,
-              width: size,
-              height: size,
-              animationDelay: `${delay}s`,
-            }}
-          />
-        ))}
-      </div>
       <div className={frame} style={parallax(20)}>
         <div className={stage}>
-          <div className="flex w-4/5 justify-center">
+          <div className="motion-safe:animate-bob relative aspect-[6/5] w-[min(88%,43.2dvh,24rem)] origin-bottom transition-transform duration-500 group-hover:scale-105">
+            <Image
+              src={businessBeaver}
+              alt=""
+              sizes="(min-width: 1024px) 18vw, 55vw"
+              className="absolute top-0 left-[8%] h-auto w-[48%]"
+            />
+            <Image
+              src={ideaBeaver}
+              alt=""
+              sizes="(min-width: 1024px) 18vw, 55vw"
+              className="absolute top-[2%] right-[3%] h-auto w-[48%]"
+            />
+            <Image
+              src={pencilBeaver}
+              alt=""
+              sizes="(min-width: 1024px) 18vw, 55vw"
+              className="absolute bottom-[1%] left-[2%] z-10 h-auto w-1/2"
+            />
             <Image
               src={moneyBeaver}
               alt=""
-              className={`${art} origin-bottom transition-transform duration-500 group-hover:scale-105`}
+              sizes="(min-width: 1024px) 18vw, 55vw"
+              className="absolute right-[-4%] bottom-[-2%] z-20 h-auto w-[62%]"
             />
           </div>
         </div>

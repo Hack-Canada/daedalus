@@ -121,13 +121,14 @@ export function ApplyPicker({
   }
 
   return (
-    <div className="group/picker h-dvh snap-y snap-mandatory overflow-y-auto bg-[#031b31] lg:flex lg:snap-none lg:overflow-hidden">
+    <div className="group/picker h-dvh snap-y snap-mandatory overflow-y-auto bg-[#031b31] lg:grid lg:grid-cols-3 lg:grid-rows-[minmax(0,1fr)_auto_auto_auto] lg:snap-none lg:overflow-hidden">
       <ApplyMark />
       {TRACKS.map((track, index) => {
         const theme = THEMES[track.id];
         const isCurrent = hasDraft && currentTrack === track.id;
         const action = !hasDraft ? "Start" : isCurrent ? "Continue" : "Switch";
-        const linkClass = "relative z-10 flex h-full min-h-11 w-full flex-col p-8 pt-20 text-left outline-none md:p-12 md:pt-24";
+        const linkClass =
+          "relative z-10 flex h-full min-h-11 w-full flex-col p-8 pt-20 text-left outline-none md:p-12 md:pt-24 lg:row-span-4 lg:grid lg:grid-rows-subgrid";
 
         return (
           <section
@@ -136,9 +137,11 @@ export function ApplyPicker({
             onPointerMove={onPointerMove}
             onPointerLeave={onPointerLeave}
             style={{ animationDelay: `${index * 90}ms` }}
-            className={`${theme.panel} group animate-in fade-in fill-mode-both relative z-0 flex h-dvh origin-center snap-start overflow-hidden duration-700 motion-reduce:animate-none motion-reduce:transition-none lg:h-full lg:min-w-0 lg:flex-1 lg:transition-[scale,filter] lg:duration-700 lg:ease-[cubic-bezier(0.22,1,0.36,1)] lg:group-hover/picker:not-hover:brightness-90 lg:hover:z-10 lg:hover:scale-110`}
+            className={`${theme.panel} group animate-in fade-in fill-mode-both relative z-0 flex h-dvh origin-center snap-start overflow-hidden duration-700 motion-reduce:animate-none motion-reduce:transition-none lg:row-span-4 lg:grid lg:h-auto lg:min-w-0 lg:grid-rows-subgrid lg:transition-[scale,filter] lg:duration-700 lg:ease-[cubic-bezier(0.22,1,0.36,1)] lg:group-hover/picker:not-hover:brightness-90 lg:hover:z-10 lg:hover:scale-110`}
           >
-            <Scenery id={track.id} />
+            <div className="pointer-events-none absolute inset-0">
+              <Scenery id={track.id} />
+            </div>
             {isCurrent || !hasDraft ? (
               <Link href={`/apply/${track.id}`} className={linkClass}>
                 <PanelCopy
@@ -176,33 +179,32 @@ function PanelCopy({
   const theme = THEMES[track.id];
   return (
     <>
-      {isCurrent && (
-        <span className={`w-fit text-sm font-medium ${theme.muted}`}>
-          Draft saved
-        </span>
-      )}
+      <span>
+        {isCurrent && (
+          <span className={`w-fit text-sm font-medium ${theme.muted}`}>
+            Draft saved
+          </span>
+        )}
+      </span>
 
-      <span className="mt-auto block max-w-md pb-8 lg:pb-10">
-        <span
-          id={`${track.id}-title`}
-          role="heading"
-          aria-level={2}
-          className="font-display block text-5xl leading-[0.95] transition-transform duration-500 ease-out group-hover:-translate-y-1 md:text-6xl"
-        >
-          {track.title}
-        </span>
-        <span
-          className={`mt-4 block text-base leading-relaxed md:text-lg lg:min-h-[3lh] ${theme.muted}`}
-        >
-          {track.description}
-        </span>
-        {/* Keep the copy aligned across cards when Team has no joining note. */}
-        <span
-          aria-hidden={track.id === "team"}
-          className={`mt-4 block text-sm italic ${theme.muted} ${track.id === "team" ? "invisible" : ""}`}
-        >
-          You can still join a team later.
-        </span>
+      <span
+        id={`${track.id}-title`}
+        role="heading"
+        aria-level={2}
+        className="font-display mt-auto block max-w-md text-5xl leading-[0.95] transition-transform duration-500 ease-out group-hover:-translate-y-1 md:text-6xl lg:mt-0"
+      >
+        {track.title}
+      </span>
+      <span
+        className={`mt-4 block max-w-md text-base leading-relaxed md:text-lg ${theme.muted}`}
+      >
+        {track.description}
+      </span>
+      <span
+        aria-hidden={track.id === "team"}
+        className={`mt-4 block max-w-md pb-8 text-sm italic lg:pb-10 ${theme.muted} ${track.id === "team" ? "invisible" : ""}`}
+      >
+        You can still join a team later.
       </span>
 
       <span className="sr-only">{action}</span>

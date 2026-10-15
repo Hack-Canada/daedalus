@@ -4,7 +4,7 @@ export const fredoka = Fredoka({ subsets: ["latin"] });
 
 export const rubik = Rubik({
   subsets: ["latin"],
-  variable: "--font-rubik",
+  variable: "--font-rubik-family",
 });
 
 export const londrina = Londrina_Solid({

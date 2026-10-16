@@ -8,7 +8,7 @@ export default function Loading() {
       className="flex min-h-[80dvh] items-center justify-center"
     >
       <Image
-        src="/logo-circle.png"
+        src="/hack-canada-logo.png"
         alt=""
         width={56}
         height={56}

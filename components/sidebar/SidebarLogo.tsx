@@ -15,7 +15,7 @@ const SidebarLogo = ({ className, mobile, dark = true }: Props) => {
       className={`flex w-fit cursor-pointer items-center space-x-2 ${className}`}
     >
       <Image
-        src={"/logo-circle.png"}
+        src={"/hack-canada-logo.png"}
         alt="Hack Canada Logo"
         width={48}
         height={48}

@@ -1,0 +1,70 @@
+.viewport {
+  height: 100dvh;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.viewport main {
+  min-width: 0;
+  padding-top: 24px;
+  padding-bottom: 24px;
+}
+
+.viewport :global(.auth-card) {
+  min-height: 0;
+}
+
+/* Fixed column height (sign-up form + back link) so the centred column, and the
+   tabs pill at its top, stay put when switching between the shorter sign-in form. */
+.viewport main > div {
+  height: 100%;
+  max-height: 776px;
+}
+
+.viewport main > div > :global(.animate-page-in) {
+  height: auto;
+}
+
+/* Keep every sign-in and sign-up control visible on shorter laptop and mobile screens. */
+@media (max-height: 760px) {
+  .viewport {
+    --auth-gap: clamp(8px, calc((100dvh - 550px) / 8), 16px);
+  }
+
+  .viewport main {
+    padding-top: 8px;
+    padding-bottom: 8px;
+  }
+
+  .viewport :global(.auth-card),
+  .viewport :global(.auth-content),
+  .viewport form {
+    gap: var(--auth-gap);
+  }
+
+  .viewport :global(.auth-oauth),
+  .viewport :global(.auth-footer) {
+    gap: 8px;
+  }
+
+  .viewport :global(.auth-oauth) button {
+    padding-top: 8px;
+    padding-bottom: 8px;
+  }
+
+  .viewport :global(.auth-back) {
+    margin-top: var(--auth-gap);
+  }
+}
+
+@media (max-height: 600px) {
+  .viewport h1 {
+    font-size: 36px;
+    line-height: 40px;
+  }
+
+  .viewport form input,
+  .viewport form button {
+    height: 36px;
+  }
+}

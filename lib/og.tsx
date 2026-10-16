@@ -8,7 +8,7 @@ export const SEA_GRADIENT = "linear-gradient(180deg, #4A8FDB 0%, #255FAE 100%)";
 
 let logo: Promise<string> | null = null;
 export function loadLogo() {
-  logo ??= readFile(path.join(process.cwd(), "public", "logo-circle.png")).then(
+  logo ??= readFile(path.join(process.cwd(), "public", "hack-canada-logo.png")).then(
     (file) => `data:image/png;base64,${file.toString("base64")}`,
   );
   return logo;

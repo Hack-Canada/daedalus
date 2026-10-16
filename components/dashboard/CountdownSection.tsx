@@ -26,7 +26,7 @@ export const CountdownSection = () => {
         <div className="flex flex-col items-center gap-4 sm:flex-row">
           <div className="relative size-16">
             <Image
-              src="/logo-circle.png"
+              src="/hack-canada-logo.png"
               alt="Hack Canada"
               fill
               className="rounded-full object-contain"

@@ -16,28 +16,28 @@ const AuthFooter = ({
   customSignInLabel,
 }: Props) => {
   const hasLinks = showResetPassword || showContactUs;
-  
+
   return (
-    <div className="flex flex-col gap-4 pt-2">
+    <div className="auth-footer flex flex-col gap-4 pt-2">
       {(showSignIn || showSignUp) && (
         <div className="flex flex-col gap-2">
           {showSignIn && (
-            <p className="text-white/60 text-center text-sm">
+            <p className="text-center text-sm text-white/60">
               {customSignInLabel || "Already have an account?"}{" "}
               <Link
                 href="/sign-in"
-                className="cursor-pointer text-[#85B7F1] hover:text-white font-medium transition-all hover:underline"
+                className="cursor-pointer font-medium text-[#85B7F1] transition-all hover:text-white hover:underline"
               >
                 Sign In
               </Link>
             </p>
           )}
           {showSignUp && (
-            <p className="text-white/60 text-center text-sm">
+            <p className="text-center text-sm text-white/60">
               New to Hack Canada?{" "}
               <Link
                 href="/sign-up"
-                className="cursor-pointer text-[#85B7F1] hover:text-white font-medium transition-all hover:underline"
+                className="cursor-pointer font-medium text-[#85B7F1] transition-all hover:text-white hover:underline"
               >
                 Sign Up
               </Link>
@@ -50,7 +50,7 @@ const AuthFooter = ({
           {showResetPassword && (
             <Link
               href="/forgot-password"
-              className="cursor-pointer text-[#85B7F1] hover:text-white font-medium transition-all hover:underline"
+              className="cursor-pointer font-medium text-[#85B7F1] transition-all hover:text-white hover:underline"
             >
               Forgot password?
             </Link>
@@ -59,7 +59,7 @@ const AuthFooter = ({
             <Link
               href="mailto:hi@hackcanada.org"
               target="_blank"
-              className="cursor-pointer text-[#85B7F1] hover:text-white font-medium transition-all hover:underline"
+              className="cursor-pointer font-medium text-[#85B7F1] transition-all hover:text-white hover:underline"
             >
               Need help?
             </Link>

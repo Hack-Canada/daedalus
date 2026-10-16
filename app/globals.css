@@ -16,16 +16,15 @@
   }
 }
 
-/* inline: --font-londrina lives on <body> (next/font), not :root */
+/* next/font sets these on <body>, so the utilities must inline the var() */
 @theme inline {
-  --font-display: var(--font-londrina), var(--font-rubik), sans-serif;
+  --font-display: var(--font-londrina), sans-serif;
+  --font-rubik: var(--font-rubik-family), sans-serif;
 }
 
 @theme {
   --breakpoint-xs: 500px;
   --breakpoint-3xl: 1850px;
-
-  --font-rubik: var(--font-rubik), Luckiest Guy, cursive;
 
   --color-primary: #1e90ff;
   --color-primaryLight: #87ceeb;

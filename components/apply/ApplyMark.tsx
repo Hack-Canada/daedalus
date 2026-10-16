@@ -20,7 +20,7 @@ export function ApplyMark() {
   if (!ready || status !== "authenticated") {
     return (
       <Image
-        src="/logo-circle.png"
+        src="/hack-canada-logo.png"
         alt="Hack Canada"
         width={40}
         height={40}
@@ -32,7 +32,7 @@ export function ApplyMark() {
   return (
     <div className="group fixed top-4 left-4 z-20">
       <Image
-        src="/logo-circle.png"
+        src="/hack-canada-logo.png"
         alt="Hack Canada"
         width={40}
         height={40}

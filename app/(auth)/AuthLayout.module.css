@@ -14,6 +14,17 @@
   min-height: 0;
 }
 
+/* Fixed column height (sign-up form + back link) so the centred column, and the
+   tabs pill at its top, stay put when switching between the shorter sign-in form. */
+.viewport main > div {
+  height: 100%;
+  max-height: 776px;
+}
+
+.viewport main > div > :global(.animate-page-in) {
+  height: auto;
+}
+
 /* Keep every sign-in and sign-up control visible on shorter laptop and mobile screens. */
 @media (max-height: 760px) {
   .viewport {

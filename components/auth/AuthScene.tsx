@@ -55,34 +55,45 @@ export function AuthScene() {
         aria-hidden
         className="[container-type:size] relative hidden flex-1 overflow-hidden bg-[#d9ae73] lg:block"
       >
-        {/* Anchor the lettering at the panel centre while the artwork covers its height. */}
-        <div
-          className={`absolute top-1/2 ${signIn ? "left-1/2 -translate-x-[49.5%] -translate-y-[52%]" : "left-[55%] -translate-x-1/2 -translate-y-1/2"}`}
-          style={{
-            width: signIn ? "max(100cqw, 197.12cqh)" : "max(100cqw, 148.74cqh)",
-            aspectRatio: signIn ? "4096 / 2285.83203125" : "2539 / 1707",
-          }}
-        >
-          <Image
-            src={signIn ? signInBeach : signUpBeach}
-            alt=""
-            fill
-            priority
-            quality={95}
-            unoptimized={!signIn}
-            sizes="(min-width: 1024px) 110vw, 100vw"
-            className="object-cover"
-          />
-          {signIn && (
-            <Image
-              src={signInBeachAccent}
-              alt=""
-              quality={95}
-              sizes="28vw"
-              className="absolute top-[63.295%] left-[73.548%] h-auto w-[25.323%]"
-            />
-          )}
-        </div>
+        <AnimatePresence initial={false}>
+          <motion.div
+            key={scene}
+            className="absolute inset-0"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.5, ease: "easeInOut" }}
+          >
+            {/* Anchor the lettering at the panel centre while the artwork covers its height. */}
+            <div
+              className={`absolute top-1/2 ${signIn ? "left-1/2 -translate-x-[49.5%] -translate-y-[52%]" : "left-[55%] -translate-x-1/2 -translate-y-1/2"}`}
+              style={{
+                width: signIn ? "max(100cqw, 197.12cqh)" : "max(100cqw, 148.74cqh)",
+                aspectRatio: signIn ? "4096 / 2285.83203125" : "2539 / 1707",
+              }}
+            >
+              <Image
+                src={signIn ? signInBeach : signUpBeach}
+                alt=""
+                fill
+                priority
+                quality={95}
+                unoptimized={!signIn}
+                sizes="(min-width: 1024px) 110vw, 100vw"
+                className="object-cover"
+              />
+              {signIn && (
+                <Image
+                  src={signInBeachAccent}
+                  alt=""
+                  quality={95}
+                  sizes="28vw"
+                  className="absolute top-[63.295%] left-[73.548%] h-auto w-[25.323%]"
+                />
+              )}
+            </div>
+          </motion.div>
+        </AnimatePresence>
       </aside>
     );
   }

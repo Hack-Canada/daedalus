@@ -57,6 +57,13 @@
       "when": 1791914030338,
       "tag": "0007_drop-unused-application-columns",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1792192181187,
+      "tag": "0008_travel-decision",
+      "breakpoints": true
     }
   ]
 }

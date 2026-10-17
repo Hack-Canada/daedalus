@@ -40,8 +40,8 @@ export type TeamMail =
   | { kind: "accepted"; to: string; name: string; teamName: string };
 
 type Result =
-  | { success: true; message: string; mail?: TeamMail }
-  | { success: false; message: string };
+  | { success: true; message: string; revision?: number; mail?: TeamMail }
+  | { success: false; message: string; conflict?: boolean };
 
 function displayName(firstName: string | null, name: string) {
   return firstName?.trim() || name.trim().split(/\s+/)[0] || "Teammate";
@@ -148,6 +148,8 @@ export async function getTeamForUser(
     .select({
       userId: teamMembers.userId,
       marsAnswer: teamMembers.marsAnswer,
+      marsRevision: teamMembers.marsRevision,
+      membershipId: teamMembers.membershipId,
       joinedAt: teamMembers.joinedAt,
       firstName: hackerApplications.firstName,
       name: users.name,
@@ -204,6 +206,8 @@ export async function getTeamForUser(
   }
 
   return {
+    id: team.id,
+    essayRevision: team.essayRevision,
     name: team.name,
     isPublic: team.isPublic,
     lookingFor: team.lookingFor?.trim() ?? "",
@@ -216,6 +220,8 @@ export async function getTeamForUser(
     members: members.map((member) => ({
       firstName: displayName(member.firstName, member.name),
       marsAnswer: member.marsAnswer || "",
+      marsRevision: member.marsRevision,
+      membershipId: member.membershipId,
       isOwner: member.userId === team.createdBy,
       isMe: member.userId === userId,
       ...(isOwner ? { userId: member.userId } : {}),
@@ -438,6 +444,11 @@ export async function createTeam(
   for (let attempt = 0; attempt < 5; attempt++) {
     try {
       await db.transaction(async (tx) => {
+        await tx
+          .select()
+          .from(users)
+          .where(eq(users.id, userId))
+          .for("no key update");
         const [created] = await tx
           .insert(teams)
           .values({
@@ -573,7 +584,7 @@ export async function createTeamRequest(
   try {
     return await db.transaction(async (tx) => {
       await tx.execute(
-        sql`select "id" from "user" where "id" = ${userId} for update`,
+        sql`select "id" from "user" where "id" = ${userId} for no key update`,
       );
 
       const [member] = await tx
@@ -733,6 +744,11 @@ export async function decideTeamRequest(
         };
       }
 
+      await tx
+        .select()
+        .from(users)
+        .where(eq(users.id, request.userId))
+        .for("no key update");
       await tx.execute(
         sql`select "id" from "team" where "id" = ${request.teamId} for update`,
       );
@@ -846,80 +862,81 @@ export async function removeMember(
   ownerId: string,
   memberUserId: string,
 ): Promise<Result> {
-  if (ownerId === memberUserId) {
+  if (ownerId === memberUserId)
     return { success: false, message: "Use leave team to remove yourself." };
-  }
-  const team = await lockOwnedTeam(ownerId);
-  if (!team)
-    return {
-      success: false,
-      message: "Only the team owner can remove someone.",
-    };
-
-  const [removed] = await db
-    .delete(teamMembers)
-    .where(
-      and(
-        eq(teamMembers.teamId, team.id),
-        eq(teamMembers.userId, memberUserId),
-        sql`exists (select 1 from "team" where "id" = ${team.id} and "createdBy" = ${ownerId})`,
-      ),
-    )
-    .returning({ userId: teamMembers.userId });
-  if (!removed)
-    return { success: false, message: "That person is not on your team." };
-
-  await db
-    .update(hackerApplications)
-    .set({ isTeam: false, updatedAt: new Date() })
-    .where(eq(hackerApplications.userId, memberUserId));
-  return { success: true, message: "Removed from the team." };
+  return db.transaction(async (tx) => {
+    await tx
+      .select()
+      .from(users)
+      .where(eq(users.id, memberUserId))
+      .for("no key update");
+    const context = await lockMembership(tx, ownerId);
+    if (!context || context.team.createdBy !== ownerId)
+      return {
+        success: false,
+        message: "Only the team owner can remove someone.",
+      };
+    const [removed] = await tx
+      .delete(teamMembers)
+      .where(
+        and(
+          eq(teamMembers.teamId, context.team.id),
+          eq(teamMembers.userId, memberUserId),
+        ),
+      )
+      .returning();
+    if (!removed)
+      return { success: false, message: "That person is not on your team." };
+    await tx
+      .update(hackerApplications)
+      .set({ isTeam: false, updatedAt: new Date() })
+      .where(eq(hackerApplications.userId, memberUserId));
+    return { success: true, message: "Removed from the team." };
+  });
 }
 
 export async function transferOwnership(
   ownerId: string,
   memberUserId: string,
 ): Promise<Result> {
-  if (ownerId === memberUserId) {
+  if (ownerId === memberUserId)
     return {
       success: false,
       message: "Pick a teammate to transfer ownership to.",
     };
-  }
-  const team = await lockOwnedTeam(ownerId);
-  if (!team)
-    return {
-      success: false,
-      message: "Only the team owner can transfer ownership.",
-    };
-
-  const [member] = await db
-    .select({ userId: teamMembers.userId })
-    .from(teamMembers)
-    .where(
-      and(
-        eq(teamMembers.teamId, team.id),
-        eq(teamMembers.userId, memberUserId),
-      ),
-    );
-  if (!member)
-    return { success: false, message: "That person is not on your team." };
-
-  const [saved] = await db
-    .update(teams)
-    .set({ createdBy: memberUserId })
-    .where(and(eq(teams.id, team.id), eq(teams.createdBy, ownerId)))
-    .returning({ id: teams.id });
-  if (!saved)
-    return {
-      success: false,
-      message: "Only the team owner can transfer ownership.",
-    };
-  return { success: true, message: "Ownership transferred." };
+  return db.transaction(async (tx) => {
+    const context = await lockMembership(tx, ownerId);
+    if (!context || context.team.createdBy !== ownerId)
+      return {
+        success: false,
+        message: "Only the team owner can transfer ownership.",
+      };
+    const [member] = await tx
+      .select()
+      .from(teamMembers)
+      .where(
+        and(
+          eq(teamMembers.teamId, context.team.id),
+          eq(teamMembers.userId, memberUserId),
+        ),
+      );
+    if (!member)
+      return { success: false, message: "That person is not on your team." };
+    await tx
+      .update(teams)
+      .set({ createdBy: memberUserId })
+      .where(eq(teams.id, context.team.id));
+    return { success: true, message: "Ownership transferred." };
+  });
 }
 
 export async function leaveTeam(userId: string): Promise<Result> {
   return db.transaction(async (tx) => {
+    await tx
+      .select()
+      .from(users)
+      .where(eq(users.id, userId))
+      .for("no key update");
     const [membership] = await tx
       .select()
       .from(teamMembers)
@@ -930,6 +947,20 @@ export async function leaveTeam(userId: string): Promise<Result> {
     await tx.execute(
       sql`select "id" from "team" where "id" = ${membership.teamId} for update`,
     );
+    const [stillMember] = await tx
+      .select()
+      .from(teamMembers)
+      .where(
+        and(
+          eq(teamMembers.userId, userId),
+          eq(teamMembers.membershipId, membership.membershipId),
+        ),
+      );
+    if (!stillMember)
+      return {
+        success: false as const,
+        message: "Your team changed. Reload before trying again.",
+      };
     const members = await tx
       .select()
       .from(teamMembers)
@@ -963,13 +994,31 @@ export async function leaveTeam(userId: string): Promise<Result> {
   });
 }
 
-async function answersAreLocked(userId: string) {
-  const [row] = await db
-    .select({ answersLocked: teams.answersLocked, teamId: teamMembers.teamId })
+type TeamTransaction = Parameters<Parameters<typeof db.transaction>[0]>[0];
+
+async function lockMembership(tx: TeamTransaction, userId: string) {
+  const [initial] = await tx
+    .select()
     .from(teamMembers)
-    .innerJoin(teams, eq(teams.id, teamMembers.teamId))
     .where(eq(teamMembers.userId, userId));
-  return row ?? null;
+  if (!initial) return null;
+  const [team] = await tx
+    .select()
+    .from(teams)
+    .where(eq(teams.id, initial.teamId))
+    .for("update");
+  if (!team) return null;
+  // Recheck after waiting on the team lock. Removal/rejoin is a new membership.
+  const [membership] = await tx
+    .select()
+    .from(teamMembers)
+    .where(
+      and(
+        eq(teamMembers.userId, userId),
+        eq(teamMembers.membershipId, initial.membershipId),
+      ),
+    );
+  return membership ? { team, membership } : null;
 }
 
 export async function setAnswersLocked(
@@ -1001,77 +1050,96 @@ export async function setAnswersLocked(
 export async function saveMarsAnswer(
   userId: string,
   marsAnswer: string,
+  expected: { teamId: string; membershipId: string; revision: number },
 ): Promise<Result> {
   const answer = marsAnswer.trim();
-  if (wordCount(answer) > MARS_WORD_LIMIT) {
+  if (wordCount(answer) > MARS_WORD_LIMIT)
     return {
       success: false,
       message: `Your Mars answer must be ${MARS_WORD_LIMIT} words or less.`,
     };
-  }
-  const membership = await answersAreLocked(userId);
-  if (!membership)
-    return { success: false, message: "Join a team before answering." };
-  if (membership.answersLocked) {
-    return { success: false, message: "The owner locked the team answers." };
-  }
-  const [row] = await db
-    .update(teamMembers)
-    .set({ marsAnswer: answer })
-    .where(eq(teamMembers.userId, userId))
-    .returning();
-  if (!row) return { success: false, message: "Join a team before answering." };
-  return { success: true, message: "Mars answer saved." };
+  return db.transaction(async (tx) => {
+    const context = await lockMembership(tx, userId);
+    if (
+      !context ||
+      context.team.id !== expected.teamId ||
+      context.membership.membershipId !== expected.membershipId
+    )
+      return {
+        success: false,
+        conflict: true,
+        message: "Your membership changed. Copy your answer before reloading.",
+      };
+    if (context.team.answersLocked)
+      return {
+        success: false,
+        message:
+          "The owner locked the team answers. Your unsaved text is still here.",
+      };
+    if (context.membership.marsRevision !== expected.revision)
+      return {
+        success: false,
+        conflict: true,
+        message:
+          "Your saved Mars answer changed. Copy your unsaved answer before reloading.",
+      };
+    await tx
+      .update(teamMembers)
+      .set({ marsAnswer: answer, marsRevision: expected.revision + 1 })
+      .where(eq(teamMembers.membershipId, expected.membershipId));
+    return {
+      success: true,
+      message: "Mars answer saved.",
+      revision: expected.revision + 1,
+    };
+  });
 }
 
 export async function saveTeamEssay(
   userId: string,
   essay: string,
+  expected: { teamId: string; revision: number },
 ): Promise<Result> {
   const answer = essay.trim();
-  if (wordCount(answer) > ESSAY_WORD_LIMIT) {
+  if (wordCount(answer) > ESSAY_WORD_LIMIT)
     return {
       success: false,
       message: `The team answer must be ${ESSAY_WORD_LIMIT} words or less.`,
     };
-  }
-  const membership = await answersAreLocked(userId);
-  if (!membership)
-    return { success: false, message: "Join a team before answering." };
-  if (membership.answersLocked) {
-    return { success: false, message: "The owner locked the team answers." };
-  }
-
-  // ponytail: last write wins. Two people saving at once overwrite each other.
-  // Upgrade path: compare a version column before update.
-  await db
-    .update(teams)
-    .set({ essay: answer, essayUpdatedBy: userId, essayUpdatedAt: new Date() })
-    .where(eq(teams.id, membership.teamId));
-  return { success: true, message: "Team answer saved." };
-}
-
-export async function setApplicationTrack(
-  userId: string,
-  track: "quick" | "normal" | "team",
-) {
-  const [existing] = await db
-    .select({ submissionStatus: hackerApplications.submissionStatus })
-    .from(hackerApplications)
-    .where(eq(hackerApplications.userId, userId));
-  if (!existing || existing.submissionStatus === "submitted") {
+  return db.transaction(async (tx) => {
+    const context = await lockMembership(tx, userId);
+    if (!context || context.team.id !== expected.teamId)
+      return {
+        success: false,
+        conflict: true,
+        message: "Your team changed. Copy your answer before reloading.",
+      };
+    if (context.team.answersLocked)
+      return {
+        success: false,
+        message:
+          "The owner locked the team answers. Your unsaved text is still here.",
+      };
+    if (context.team.essayRevision !== expected.revision)
+      return {
+        success: false,
+        conflict: true,
+        message:
+          "A teammate saved a newer answer. Copy your unsaved answer before reloading to compare it.",
+      };
+    await tx
+      .update(teams)
+      .set({
+        essay: answer,
+        essayRevision: expected.revision + 1,
+        essayUpdatedBy: userId,
+        essayUpdatedAt: new Date(),
+      })
+      .where(eq(teams.id, expected.teamId));
     return {
-      success: false as const,
-      message: "This application can no longer change tracks.",
+      success: true,
+      message: "Team answer saved.",
+      revision: expected.revision + 1,
     };
-  }
-  await db
-    .update(hackerApplications)
-    .set({
-      applicationType: track,
-      ...(track === "normal" ? {} : { shortAnswer1: null, shortAnswer2: null }),
-      updatedAt: new Date(),
-    })
-    .where(eq(hackerApplications.userId, userId));
-  return { success: true as const, message: "Track updated." };
+  });
 }

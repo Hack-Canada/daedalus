@@ -1,17 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/auth";
 
-import { MIN_TEAM_APPLY } from "@/config/apply";
 import { ApiResponse } from "@/types/api";
+import { MIN_TEAM_APPLY } from "@/config/apply";
 import { toApplicationRow } from "@/lib/apply/payload";
 import {
-  createOrUpdateApplication,
-  submitApplication,
+  ApplicationConflict,
+  completeApplicationSubmission,
+  writeApplication,
 } from "@/lib/db/queries/application";
 import { getTeamForUser } from "@/lib/db/queries/team";
 import { sendApplicationSubmittedEmail } from "@/lib/emails/ses";
 import { getPhaseState } from "@/lib/phase";
-import { deletePendingResume, finalizeResume } from "@/lib/storage/resume";
+import { finalizeResume } from "@/lib/storage/resume";
 import {
   HackerApplicationSubmissionSchema,
   teamAnswerError,
@@ -30,10 +31,14 @@ export async function POST(
       });
     }
 
-    if (currentUser.role !== "unassigned" || currentUser.status !== "not_applied") {
+    if (
+      currentUser.role !== "unassigned" ||
+      currentUser.status !== "not_applied"
+    ) {
       return NextResponse.json({
         success: false,
-        message: "You must not have received a decision to submit an application",
+        message:
+          "You must not have received a decision to submit an application",
       });
     }
 
@@ -45,9 +50,8 @@ export async function POST(
       });
     }
 
-    const validatedFields = HackerApplicationSubmissionSchema.safeParse(
-      await req.json(),
-    );
+    const body = await req.json();
+    const validatedFields = HackerApplicationSubmissionSchema.safeParse(body);
 
     if (!validatedFields.success) {
       const errorMessages = Object.values(
@@ -102,38 +106,21 @@ export async function POST(
       });
     }
 
-    const createResult = await createOrUpdateApplication({
-      ...toApplicationRow(
-        { ...data, resumeUrl },
-        currentUser.id,
-        currentUser.email || "",
-        Boolean(team),
-      ),
-      submissionStatus: "submitted",
-    });
+    const saved = await writeApplication(
+      {
+        ...toApplicationRow(
+          { ...data, resumeUrl },
+          currentUser.id,
+          currentUser.email || "",
+          Boolean(team),
+        ),
+        submissionStatus: "submitted",
+      },
+      body.expectedRevision,
+      true,
+    );
 
-    if (!createResult.success || !createResult.data) {
-      return NextResponse.json({
-        success: false,
-        message: "Failed to create application. Please try again.",
-      });
-    }
-
-    const updatedApplication = await submitApplication(createResult.data);
-    if (!updatedApplication.success) {
-      return NextResponse.json({
-        success: false,
-        message: "Failed to submit application. Please try again.",
-      });
-    }
-
-    if (data.resumeUrl.startsWith("pending/")) {
-      try {
-        await deletePendingResume(currentUser.id, data.resumeUrl);
-      } catch (error) {
-        console.error("Pending resume cleanup error:", error);
-      }
-    }
+    await completeApplicationSubmission(currentUser.id);
 
     await sendApplicationSubmittedEmail({
       name: data.firstName,
@@ -144,8 +131,14 @@ export async function POST(
     return NextResponse.json({
       success: true,
       message: "Application submitted successfully!",
+      data: { revision: saved.application.revision },
     });
   } catch (error) {
+    if (error instanceof ApplicationConflict)
+      return NextResponse.json(
+        { success: false, message: error.message },
+        { status: 409 },
+      );
     console.error("Submission Error:", error);
     return NextResponse.json({
       success: false,

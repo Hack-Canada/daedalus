@@ -11,16 +11,20 @@ export async function POST(
   if (!guard.ok) return guard.response;
 
   const body = await req.json().catch(() => null);
-  if (typeof body?.marsAnswer !== "string") {
+  if (
+    typeof body?.marsAnswer !== "string" ||
+    typeof body?.teamId !== "string" ||
+    !Number.isSafeInteger(body?.revision) ||
+    typeof body?.membershipId !== "string"
+  ) {
     return NextResponse.json(
       { success: false, message: "Write your Mars answer first." },
       { status: 400 },
     );
   }
 
-  const result = await saveMarsAnswer(guard.userId, body.marsAnswer);
-  return NextResponse.json(
-    { success: result.success, message: result.message },
-    { status: result.success ? 200 : 400 },
-  );
+  const result = await saveMarsAnswer(guard.userId, body.marsAnswer, body);
+  return NextResponse.json(result, {
+    status: result.success ? 200 : result.conflict ? 409 : 400,
+  });
 }

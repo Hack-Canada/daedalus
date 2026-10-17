@@ -49,6 +49,7 @@ const ResetPasswordForm = ({ token }: ResetPasswordParamsProps) => {
 
         const res = await fetcher("/api/auth/reset-password", {
           method: "POST",
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             password: values.password,
             confirmPassword: values.confirmPassword,
@@ -74,15 +75,20 @@ const ResetPasswordForm = ({ token }: ResetPasswordParamsProps) => {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-5">
-        {error && <p className="text-red-300 text-sm">{error}</p>}
+      <form
+        onSubmit={form.handleSubmit(onSubmit)}
+        className="flex flex-col gap-5"
+      >
+        {error && <p className="text-sm text-red-300">{error}</p>}
 
         <FormField
           control={form.control}
           name="password"
           render={({ field }) => (
             <FormItem className="space-y-2">
-              <FormLabel className="text-white/90 font-medium">New Password</FormLabel>
+              <FormLabel className="font-medium text-white/90">
+                New Password
+              </FormLabel>
               <FormControl>
                 <Input
                   {...field}
@@ -101,7 +107,9 @@ const ResetPasswordForm = ({ token }: ResetPasswordParamsProps) => {
           name="confirmPassword"
           render={({ field }) => (
             <FormItem className="space-y-2">
-              <FormLabel className="text-white/90 font-medium">Confirm Password</FormLabel>
+              <FormLabel className="font-medium text-white/90">
+                Confirm Password
+              </FormLabel>
               <FormControl>
                 <Input
                   {...field}

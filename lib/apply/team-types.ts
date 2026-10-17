@@ -56,6 +56,8 @@ export type RequestCardView = {
 };
 
 export type TeamMemberView = {
+  membershipId: string;
+  marsRevision: number;
   firstName: string;
   marsAnswer: string;
   isOwner: boolean;
@@ -64,6 +66,8 @@ export type TeamMemberView = {
 };
 
 export type MyTeamView = {
+  id: string;
+  essayRevision: number;
   name: string;
   isPublic: boolean;
   lookingFor: string;

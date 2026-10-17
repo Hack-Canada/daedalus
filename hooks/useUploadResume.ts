@@ -53,7 +53,9 @@ export function useUploadResume() {
       setPreviewUrl(null);
       if (previewRef.current) URL.revokeObjectURL(previewRef.current);
       previewRef.current = null;
-      toast.success("Resume deleted successfully");
+      toast.success(
+        "Resume removed from this form. Save your application to keep this change.",
+      );
       return true;
     } catch (error) {
       console.error("Delete error:", error);

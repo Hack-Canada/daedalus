@@ -58,6 +58,7 @@ const SignInForm = ({}: Props) => {
       startTransition(async () => {
         const res = await fetcher<{ redirect?: string }>("/api/auth/login", {
           method: "POST",
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify(values),
         });
 

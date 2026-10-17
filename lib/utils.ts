@@ -22,15 +22,22 @@ export async function fetcher<T>(
   url: string,
   options?: RequestInit,
 ): Promise<ApiResponse<T>> {
-  const res = await fetch(url, options);
-
-  if (!res.ok) {
-    throw new Error("An error occurred while fetching the data.");
+  try {
+    const res = await fetch(url, options);
+    const data = (await res.json()) as ApiResponse<T>;
+    if (typeof data?.success === "boolean" && typeof data.message === "string")
+      return data;
+    return {
+      success: false,
+      message: "The server could not process the request. Please try again.",
+    };
+  } catch {
+    return {
+      success: false,
+      message:
+        "Could not reach the server. Please check your connection and try again.",
+    };
   }
-
-  const data: ApiResponse<T> = await res.json();
-
-  return data;
 }
 
 export const getAbsoluteUrl = (path: string) => {
@@ -41,15 +48,6 @@ export const getAbsoluteUrl = (path: string) => {
 
   return `${baseUrl}${path}`;
 };
-
-export function generateRandomCode(length: number): string {
-  const digits = "0123456789";
-  let code = "";
-  for (let i = 0; i < length; i++) {
-    code += digits[Math.floor(Math.random() * digits.length)];
-  }
-  return code;
-}
 
 /**
  * Formats an array of strings into select options

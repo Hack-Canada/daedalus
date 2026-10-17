@@ -4,8 +4,9 @@ import { getCurrentUser } from "@/auth";
 import { ApiResponse } from "@/types/api";
 import { toApplicationRow } from "@/lib/apply/payload";
 import {
-  createOrUpdateApplication,
+  ApplicationConflict,
   getHackerApplicationByUserId,
+  writeApplication,
 } from "@/lib/db/queries/application";
 import { getTeamForUser } from "@/lib/db/queries/team";
 import { getPhaseState } from "@/lib/phase";
@@ -25,10 +26,14 @@ export async function POST(
       });
     }
 
-    if (currentUser.role !== "unassigned" || currentUser.status !== "not_applied") {
+    if (
+      currentUser.role !== "unassigned" ||
+      currentUser.status !== "not_applied"
+    ) {
       return NextResponse.json({
         success: false,
-        message: "You must not have submitted or been accepted to save an application",
+        message:
+          "You must not have submitted or been accepted to save an application",
       });
     }
 
@@ -48,9 +53,8 @@ export async function POST(
       });
     }
 
-    const validationResult = HackerApplicationDraftSchema.safeParse(
-      await req.json(),
-    );
+    const body = await req.json();
+    const validationResult = HackerApplicationDraftSchema.safeParse(body);
     if (!validationResult.success) {
       const errorMessages = Object.values(
         validationResult.error.flatten().fieldErrors,
@@ -78,28 +82,30 @@ export async function POST(
     }
 
     const team = await getTeamForUser(currentUser.id);
-    const updatedApplication = await createOrUpdateApplication({
-      ...toApplicationRow(
-        validationResult.data,
-        currentUser.id,
-        currentUser.email || "",
-        Boolean(team),
-      ),
-      submissionStatus: "draft",
-    });
-
-    if (!updatedApplication.success) {
-      return NextResponse.json({
-        success: false,
-        message: "Failed to save application. Please try again.",
-      });
-    }
+    const updatedApplication = await writeApplication(
+      {
+        ...toApplicationRow(
+          validationResult.data,
+          currentUser.id,
+          currentUser.email || "",
+          Boolean(team),
+        ),
+        submissionStatus: "draft",
+      },
+      body.expectedRevision,
+    );
 
     return NextResponse.json({
       success: true,
       message: "Application saved successfully",
+      data: { revision: updatedApplication.application.revision },
     });
   } catch (error) {
+    if (error instanceof ApplicationConflict)
+      return NextResponse.json(
+        { success: false, message: error.message },
+        { status: 409 },
+      );
     console.error("Save application error:", error);
     return NextResponse.json({
       success: false,

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ArrowRight, Check } from "lucide-react";
+import { z } from "zod";
 
 import { NORMAL_PROMPTS, TEAM_PROMPTS, TRACKS } from "@/config/apply";
 import { MyTeamView } from "@/lib/apply/team-types";
@@ -7,6 +8,14 @@ import type { hackerApplications } from "@/lib/db/schema";
 import { TeamPage } from "@/components/teams/TeamPage";
 
 import { OpenResumeButton } from "./OpenResumeButton";
+
+const TeamReceipt = z.object({
+  name: z.string(),
+  essay: z.string().nullable(),
+  members: z.array(
+    z.object({ userId: z.string(), marsAnswer: z.string().nullable() }),
+  ),
+});
 
 type Row = [label: string, value: React.ReactNode];
 type Answer = [prompt: string, answer: string | null | undefined];
@@ -95,6 +104,7 @@ export function ReviewApplication({
   team: MyTeamView | null;
 }) {
   const track = TRACKS.find((item) => item.id === application.applicationType);
+  const receipt = TeamReceipt.safeParse(application.teamSnapshot);
   const mine = team?.members.find((member) => member.isMe);
   const name = [application.firstName, application.lastName]
     .filter(Boolean)
@@ -192,9 +202,29 @@ export function ReviewApplication({
           </Section>
         )}
 
+        {receipt.success && (
+          <Section title="Team answers at submission">
+            <p className="text-white/60">
+              This copy records your answers when you submitted with{" "}
+              {receipt.data.name}. Current team answers below may change until
+              applications close.
+            </p>
+            <Answers
+              items={[
+                [
+                  TEAM_PROMPTS.mars,
+                  receipt.data.members.find(
+                    (member) => member.userId === application.userId,
+                  )?.marsAnswer,
+                ],
+                [TEAM_PROMPTS.essay, receipt.data.essay],
+              ]}
+            />
+          </Section>
+        )}
         {team && (
           <Section
-            title="Team answers"
+            title="Current team answers"
             action={
               <Link
                 href="/apply/teams"

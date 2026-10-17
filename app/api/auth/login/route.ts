@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { signIn } from "@/auth";
 import { AuthError } from "next-auth";
-import bcrypt from "bcryptjs";
 
 import { ApiResponse } from "@/types/api";
 import {
@@ -10,6 +9,9 @@ import {
 } from "@/lib/db/queries/email-verification-tokens";
 import { getUserByEmail } from "@/lib/db/queries/user";
 import { sendWelcomeEmail } from "@/lib/emails/ses";
+import { authenticatePassword } from "@/lib/security/credentials";
+import { limitAuthIp } from "@/lib/security/rate-limit";
+import { readAuthJson, RequestError } from "@/lib/security/request";
 import { LoginSchema } from "@/lib/validations/login";
 
 async function getEmailVerificationRedirect(email: string, name: string) {
@@ -40,7 +42,8 @@ export async function POST(
   req: NextRequest,
 ): Promise<NextResponse<ApiResponse>> {
   try {
-    const body = await req.json();
+    const body = await readAuthJson(req);
+    await limitAuthIp(req);
 
     const validatedFields = LoginSchema.safeParse(body);
 
@@ -71,20 +74,13 @@ export async function POST(
       });
     }
 
-    const passwordsMatch = await bcrypt.compare(
-      password,
-      existingUser.password,
-    );
-
-    if (!passwordsMatch) {
-      return NextResponse.json({
-        success: false,
-        message: "Invalid email or password.",
-      });
-    }
-
-    // ponytail: Auth.js throws CredentialsSignin when signIn callback returns a redirect URL with redirect:false
     if (!existingUser.emailVerified) {
+      if (!(await authenticatePassword(email, password, req))) {
+        return NextResponse.json({
+          success: false,
+          message: "Invalid email or password.",
+        });
+      }
       const redirectUrl = await getEmailVerificationRedirect(
         existingUser.email,
         existingUser.name,
@@ -134,6 +130,12 @@ export async function POST(
       message: "Welcome!",
     });
   } catch (error) {
+    const cause = error instanceof AuthError ? error.cause?.err : error;
+    if (cause instanceof RequestError)
+      return NextResponse.json(
+        { success: false, message: cause.message },
+        { status: cause.status },
+      );
     console.error("Error during login:", error);
 
     // Handling known errors

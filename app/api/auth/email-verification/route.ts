@@ -1,13 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { eq } from "drizzle-orm";
+import { z } from "zod";
 
-import { db } from "@/lib/db";
-import {
-  deleteVerificationTokenById,
-  getVerificationTokenById,
-} from "@/lib/db/queries/email-verification-tokens";
+import { verifyEmailCode } from "@/lib/db/queries/email-verification-tokens";
 import { isUserEmailVerified } from "@/lib/db/queries/user";
-import { users } from "@/lib/db/schema";
+import { limitAuthIp } from "@/lib/security/rate-limit";
+import { readAuthJson, RequestError } from "@/lib/security/request";
 
 export async function GET(request: NextRequest) {
   try {
@@ -15,10 +12,7 @@ export async function GET(request: NextRequest) {
     const email = searchParams.get("email");
 
     if (!email) {
-      return NextResponse.json(
-        { error: "Email is required" },
-        { status: 400 },
-      );
+      return NextResponse.json({ error: "Email is required" }, { status: 400 });
     }
 
     const verified = await isUserEmailVerified(email);
@@ -35,45 +29,37 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: Request) {
   try {
-    const { code, token } = await request.json();
-
-    if (!code || !token) {
-      return NextResponse.json({ error: "Code and token are required" });
-    }
-
-    // Use transaction for atomic operations
-    await db.transaction(async (tx) => {
-      // Find the email verification token
-      const verificationToken = await getVerificationTokenById(token, tx);
-
-      if (!verificationToken) {
-        throw new Error("Invalid or expired token");
-      }
-
-      // Verify the code
-      if (verificationToken.code !== code) {
-        throw new Error("Invalid verification code");
-      }
-
-      // Update user's email verification status
-      await tx
-        .update(users)
-        .set({ emailVerified: new Date() })
-        .where(eq(users.email, verificationToken.email));
-
-      // Delete the email verification token
-      await deleteVerificationTokenById(token, tx);
+    const body = await readAuthJson(request);
+    await limitAuthIp(request);
+    const parsed = z
+      .object({ token: z.string().uuid(), code: z.string().regex(/^\d{6}$/) })
+      .safeParse(body);
+    if (!parsed.success)
+      return NextResponse.json(
+        { error: "Enter the six-digit code from your email." },
+        { status: 400 },
+      );
+    if (!(await verifyEmailCode(parsed.data.token, parsed.data.code)))
+      return NextResponse.json(
+        {
+          error:
+            "Invalid, expired, or exhausted code. Request a new code if needed.",
+        },
+        { status: 400 },
+      );
+    return NextResponse.json({
+      message: "Email verified successfully. Please sign in.",
     });
-
-    return NextResponse.json(
-      { message: "Email verified successfully. Please sign in." },
-      { status: 200 },
-    );
   } catch (error) {
+    if (error instanceof RequestError)
+      return NextResponse.json(
+        { error: error.message },
+        { status: error.status },
+      );
     console.error("Error verifying email:", error);
     return NextResponse.json(
-      { error: "Failed to verify email" },
-      { status: 500 },
+      { error: "Verification is unavailable. Please try again later." },
+      { status: 503 },
     );
   }
 }

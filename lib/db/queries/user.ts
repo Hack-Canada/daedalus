@@ -3,28 +3,19 @@ import { eq } from "drizzle-orm";
 import { db } from "..";
 import { users } from "../schema";
 
+// Authentication must never fall back to retained claims after a failed read.
 export const getUserById = async (userId: string) => {
-  try {
-    const [user] = await db.select().from(users).where(eq(users.id, userId));
-    return user;
-  } catch (error) {
-    console.error("Error fetching user in getUserByID function: ", error);
-    return null;
-  }
+  const [user] = await db.select().from(users).where(eq(users.id, userId));
+  return user;
 };
 
 export const getUserByEmail = async (email: string) => {
-  try {
-    const user = await db
-      .select()
-      .from(users)
-      .where(eq(users.email, email))
-      .limit(1);
-    return user[0];
-  } catch (error) {
-    console.error("Error fetching user in getUserByEmail function: ", error);
-    return null;
-  }
+  const [user] = await db
+    .select()
+    .from(users)
+    .where(eq(users.email, email))
+    .limit(1);
+  return user;
 };
 
 export const getUserAcceptedTime = async (userId: string) => {

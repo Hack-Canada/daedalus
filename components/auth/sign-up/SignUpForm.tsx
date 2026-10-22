@@ -109,6 +109,7 @@ const SignUpForm = ({}: Props) => {
                   {...field}
                   placeholder="Enter your name"
                   type="text"
+                  maxLength={40}
                   className="h-11"
                   autoFocus={true}
                 />

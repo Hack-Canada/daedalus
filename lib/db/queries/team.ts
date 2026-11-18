@@ -14,7 +14,9 @@ import {
   InvitePreview,
   MyRequestView,
   MyTeamView,
+  PublicContact,
   PublicTeamCard,
+  PublicTeamDetail,
   RequestCardView,
   SharedProfile,
 } from "@/lib/apply/team-types";
@@ -127,6 +129,69 @@ function cooldownUntil(decidedAt: Date | null) {
   if (!decidedAt) return null;
   const until = decidedAt.getTime() + REQUEST_COOLDOWN_MS;
   return until > Date.now() ? new Date(until).toISOString() : null;
+}
+
+function viewerRequestState(
+  requests: { id: string; status: string; decidedAt: Date | null }[],
+) {
+  const pendingRow = requests.find((request) => request.status === "pending");
+  const declined = requests
+    .filter((request) => request.status === "declined" && request.decidedAt)
+    .sort((a, b) => b.decidedAt!.getTime() - a.decidedAt!.getTime())[0];
+  return {
+    requestStatus: pendingRow ? ("pending" as const) : null,
+    requestId: pendingRow?.id ?? null,
+    cooldownUntil: pendingRow
+      ? null
+      : cooldownUntil(declined?.decidedAt ?? null),
+  };
+}
+
+const TEAM_ID =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+async function loadRoster(teamId: string, ownerId: string, viewerId: string) {
+  const members = await db
+    .select({
+      userId: teamMembers.userId,
+      firstName: hackerApplications.firstName,
+      name: users.name,
+      linkedin: hackerApplications.linkedin,
+      github: hackerApplications.github,
+      personalWebsite: hackerApplications.personalWebsite,
+    })
+    .from(teamMembers)
+    .innerJoin(users, eq(users.id, teamMembers.userId))
+    .leftJoin(
+      hackerApplications,
+      eq(hackerApplications.userId, teamMembers.userId),
+    )
+    .where(eq(teamMembers.teamId, teamId))
+    .orderBy(asc(teamMembers.joinedAt));
+
+  const contacts: PublicContact[] = [];
+  const memberFirstNames: string[] = [];
+  let mine = false;
+  for (const member of members) {
+    if (member.userId === viewerId) mine = true;
+    const firstName = displayName(member.firstName, member.name);
+    memberFirstNames.push(firstName);
+    contacts.push({
+      firstName,
+      isOwner: member.userId === ownerId,
+      linkedin: member.linkedin?.trim() ?? "",
+      github: member.github?.trim() ?? "",
+      personalWebsite: member.personalWebsite?.trim() ?? "",
+    });
+  }
+  return {
+    mine,
+    memberFirstNames,
+    contacts: [
+      ...contacts.filter((person) => person.isOwner),
+      ...contacts.filter((person) => !person.isOwner),
+    ],
+  };
 }
 
 export async function getTeamForUser(
@@ -266,11 +331,9 @@ export async function listPublicTeams(
   for (const row of rows) {
     const current = grouped.get(row.id);
     if (!current) {
-      const mine = requests.filter((request) => request.teamId === row.id);
-      const pendingRow = mine.find((request) => request.status === "pending");
-      const declined = mine
-        .filter((request) => request.status === "declined" && request.decidedAt)
-        .sort((a, b) => b.decidedAt!.getTime() - a.decidedAt!.getTime())[0];
+      const request = viewerRequestState(
+        requests.filter((item) => item.teamId === row.id),
+      );
       grouped.set(row.id, {
         id: row.id,
         name: row.name,
@@ -279,11 +342,9 @@ export async function listPublicTeams(
         spotsLeft: MAX_TEAM_SIZE - 1,
         memberFirstNames: [displayName(row.firstName, row.userName)],
         mine: row.memberId === viewerId,
-        requestStatus: pendingRow ? "pending" : null,
-        requestId: pendingRow?.id ?? null,
-        cooldownUntil: pendingRow
-          ? null
-          : cooldownUntil(declined?.decidedAt ?? null),
+        requestStatus: request.requestStatus,
+        requestId: request.requestId,
+        cooldownUntil: request.cooldownUntil,
       });
       continue;
     }
@@ -362,21 +423,7 @@ export async function getInvitePreview(
     .where(eq(teams.inviteToken, token));
   if (!team) return null;
 
-  const members = await db
-    .select({
-      userId: teamMembers.userId,
-      firstName: hackerApplications.firstName,
-      name: users.name,
-    })
-    .from(teamMembers)
-    .innerJoin(users, eq(users.id, teamMembers.userId))
-    .leftJoin(
-      hackerApplications,
-      eq(hackerApplications.userId, teamMembers.userId),
-    )
-    .where(eq(teamMembers.teamId, team.id))
-    .orderBy(asc(teamMembers.joinedAt));
-
+  const roster = await loadRoster(team.id, team.createdBy, viewerId);
   const requests = await db
     .select({
       id: teamRequests.id,
@@ -387,26 +434,57 @@ export async function getInvitePreview(
     .where(
       and(eq(teamRequests.userId, viewerId), eq(teamRequests.teamId, team.id)),
     );
-
-  const pendingRow = requests.find((request) => request.status === "pending");
-  const declined = requests
-    .filter((request) => request.status === "declined" && request.decidedAt)
-    .sort((a, b) => b.decidedAt!.getTime() - a.decidedAt!.getTime())[0];
+  const request = viewerRequestState(requests);
 
   return {
     name: team.name,
     lookingFor: team.lookingFor?.trim() ?? "",
-    memberCount: members.length,
-    spotsLeft: MAX_TEAM_SIZE - members.length,
-    memberFirstNames: members.map((member) =>
-      displayName(member.firstName, member.name),
-    ),
-    mine: members.some((member) => member.userId === viewerId),
-    requestStatus: pendingRow ? "pending" : null,
-    requestId: pendingRow?.id ?? null,
-    cooldownUntil: pendingRow
-      ? null
-      : cooldownUntil(declined?.decidedAt ?? null),
+    memberCount: roster.memberFirstNames.length,
+    spotsLeft: MAX_TEAM_SIZE - roster.memberFirstNames.length,
+    memberFirstNames: roster.memberFirstNames,
+    contacts: team.isPublic ? roster.contacts : null,
+    mine: roster.mine,
+    requestStatus: request.requestStatus,
+    requestId: request.requestId,
+    cooldownUntil: request.cooldownUntil,
+  };
+}
+
+export async function getPublicTeam(
+  teamId: string,
+  viewerId: string,
+): Promise<PublicTeamDetail | null> {
+  if (!TEAM_ID.test(teamId)) return null;
+  const [team] = await db
+    .select()
+    .from(teams)
+    .where(and(eq(teams.id, teamId), eq(teams.isPublic, true)));
+  if (!team) return null;
+
+  const roster = await loadRoster(team.id, team.createdBy, viewerId);
+  const requests = await db
+    .select({
+      id: teamRequests.id,
+      status: teamRequests.status,
+      decidedAt: teamRequests.decidedAt,
+    })
+    .from(teamRequests)
+    .where(
+      and(eq(teamRequests.userId, viewerId), eq(teamRequests.teamId, team.id)),
+    );
+  const request = viewerRequestState(requests);
+
+  return {
+    id: team.id,
+    name: team.name,
+    lookingFor: team.lookingFor?.trim() ?? "",
+    memberCount: roster.contacts.length,
+    spotsLeft: MAX_TEAM_SIZE - roster.contacts.length,
+    contacts: roster.contacts,
+    mine: roster.mine,
+    requestStatus: request.requestStatus,
+    requestId: request.requestId,
+    cooldownUntil: request.cooldownUntil,
   };
 }
 

@@ -64,6 +64,13 @@
       "when": 1792192181187,
       "tag": "0008_travel-decision",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1792212300000,
+      "tag": "0009_application-integrity",
+      "breakpoints": true
     }
   ]
 }

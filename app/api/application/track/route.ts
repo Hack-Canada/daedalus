@@ -3,7 +3,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { ApiResponse } from "@/types/api";
 import { isApplyTrack } from "@/config/apply";
 import { guardApplicationEdit } from "@/lib/apply/guard";
-import { setApplicationTrack } from "@/lib/db/queries/team";
+import {
+  ApplicationConflict,
+  setApplicationTrack,
+} from "@/lib/db/queries/application";
 
 export async function POST(
   req: NextRequest,
@@ -28,9 +31,22 @@ export async function POST(
     );
   }
 
-  const result = await setApplicationTrack(guard.userId, track);
-  return NextResponse.json(
-    { success: result.success, message: result.message },
-    { status: result.success ? 200 : 400 },
-  );
+  try {
+    const result = await setApplicationTrack(
+      guard.userId,
+      track,
+      body.expectedRevision,
+    );
+    return NextResponse.json(result);
+  } catch (error) {
+    if (error instanceof ApplicationConflict)
+      return NextResponse.json(
+        { success: false, message: error.message },
+        { status: 409 },
+      );
+    return NextResponse.json(
+      { success: false, message: "Could not switch tracks. Try again." },
+      { status: 503 },
+    );
+  }
 }

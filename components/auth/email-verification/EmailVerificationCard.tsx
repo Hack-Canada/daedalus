@@ -22,7 +22,7 @@ export function EmailVerificationCard() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isLoading, setIsLoading] = useState(false);
-  const [isAutoVerifying, setIsAutoVerifying] = useState(false);
+  const [autoVerifyFinished, setAutoVerifyFinished] = useState(false);
   const [isCheckingStatus, setIsCheckingStatus] = useState(false);
   const [error, setError] = useState("");
   const hasAttemptedAutoVerify = useRef(false);
@@ -31,13 +31,11 @@ export function EmailVerificationCard() {
   const token = searchParams.get("token");
   const code = searchParams.get("code");
   const email = searchParams.get("email");
+  const isAutoVerifying = Boolean(token && code && !autoVerifyFinished);
 
   const verifyEmail = useCallback(
     async (verificationCode: string) => {
-      if (!token) {
-        setError("Invalid verification link provided.");
-        return false;
-      }
+      if (!token) return false;
 
       try {
         const response = await fetch("/api/auth/email-verification", {
@@ -49,7 +47,11 @@ export function EmailVerificationCard() {
         });
 
         if (!response.ok) {
-          throw new Error("Invalid verification code");
+          const failure = await response.json().catch(() => null);
+          toast.error(
+            failure?.error || "Could not verify the code. Please try again.",
+          );
+          return false;
         }
 
         toast.success("Email verified successfully!");
@@ -66,15 +68,10 @@ export function EmailVerificationCard() {
   useEffect(() => {
     if (token && code && !hasAttemptedAutoVerify.current) {
       hasAttemptedAutoVerify.current = true;
-      setIsAutoVerifying(true);
-      setError("");
-
       verifyEmail(code).then((success) => {
-        setIsAutoVerifying(false);
+        setAutoVerifyFinished(true);
         if (!success) {
-          setError(
-            "Auto-verification failed. Please enter the code manually.",
-          );
+          setError("Auto-verification failed. Please enter the code manually.");
         }
       });
     }
@@ -155,12 +152,12 @@ export function EmailVerificationCard() {
     return (
       <AuthCardWrapper>
         <div className="flex flex-col items-center justify-center space-y-4 py-8">
-          <Loader2 className="text-[#85B7F1] size-12 animate-spin" />
+          <Loader2 className="size-12 animate-spin text-[#85B7F1]" />
           <div className="space-y-2 text-center">
             <h1 className="font-display text-4xl text-white md:text-5xl">
               Verifying Email
             </h1>
-            <p className="text-white/60 text-sm md:text-base">
+            <p className="text-sm text-white/60 md:text-base">
               Please wait while we verify your email...
             </p>
           </div>
@@ -175,7 +172,7 @@ export function EmailVerificationCard() {
         <h1 className="font-display text-4xl text-white md:text-5xl">
           Verify Your Email
         </h1>
-        <p className="text-white/60 text-sm md:text-base">
+        <p className="text-sm text-white/60 md:text-base">
           Enter the 6-digit code sent to{" "}
           <span className="lowercase">{email}</span>
         </p>

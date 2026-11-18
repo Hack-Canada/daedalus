@@ -2,6 +2,7 @@ import type { AdapterAccount } from "@auth/core/adapters";
 import { sql } from "drizzle-orm";
 import {
   boolean,
+  index,
   integer,
   jsonb,
   pgTable,
@@ -21,6 +22,7 @@ export const users = pgTable("user", {
   email: text("email").notNull().unique(),
   emailVerified: timestamp("emailVerified"),
   password: text("password"),
+  sessionVersion: integer("sessionVersion").notNull().default(0),
   role: text("role").default("unassigned").notNull(),
   applicationStatus: text("applicationStatus").notNull().default("not_applied"),
   acceptedAt: timestamp("acceptedAt"),
@@ -155,6 +157,7 @@ export const emailVerificationTokens = pgTable("emailVerificationToken", {
     .$defaultFn(() => crypto.randomUUID()),
   email: text("email").notNull(),
   code: text("code").notNull(),
+  attempts: integer("attempts").notNull().default(0),
   expires: timestamp("expires").notNull(),
   createdAt: timestamp("createdAt")
     .notNull()
@@ -188,6 +191,9 @@ export const hackerApplications = pgTable("hackerApplication", {
   mlhCheckbox2: boolean("mlhCheckbox2"),
   mlhCheckbox3: boolean("mlhCheckbox3"),
   submissionStatus: text("submissionStatus").notNull().default("draft"),
+  revision: integer("revision").notNull().default(0),
+  submittedAt: timestamp("submittedAt"),
+  teamSnapshot: jsonb("teamSnapshot"),
   createdAt: timestamp("createdAt")
     .notNull()
     .default(sql`CURRENT_TIMESTAMP`),
@@ -224,6 +230,7 @@ export const teams = pgTable("team", {
   lookingFor: text("lookingFor"),
   answersLocked: boolean("answersLocked").notNull().default(false),
   essay: text("essay"),
+  essayRevision: integer("essayRevision").notNull().default(0),
   essayUpdatedBy: text("essayUpdatedBy").references(() => users.id, {
     onDelete: "set null",
   }),
@@ -247,6 +254,10 @@ export const teamMembers = pgTable(
       .unique()
       .references(() => users.id, { onDelete: "cascade" }),
     marsAnswer: text("marsAnswer"),
+    membershipId: text("membershipId")
+      .notNull()
+      .default(sql`gen_random_uuid()::text`),
+    marsRevision: integer("marsRevision").notNull().default(0),
     joinedAt: timestamp("joinedAt")
       .notNull()
       .default(sql`CURRENT_TIMESTAMP`),
@@ -692,3 +703,34 @@ export const eventConfig = pgTable("eventConfig", {
 
 export type EventConfig = typeof eventConfig.$inferSelect;
 export type NewEventConfig = typeof eventConfig.$inferInsert;
+
+// Append-only database-triggered history. No cascading foreign keys: leaving a
+// team must not erase an answer or the team's identity from the audit trail.
+export const teamAnswerHistory = pgTable(
+  "teamAnswerHistory",
+  {
+    id: text("id")
+      .primaryKey()
+      .default(sql`gen_random_uuid()::text`),
+    teamId: text("teamId").notNull(),
+    entity: text("entity").notNull(),
+    operation: text("operation").notNull(),
+    record: jsonb("record").notNull(),
+    recordedAt: timestamp("recordedAt")
+      .notNull()
+      .default(sql`clock_timestamp()`),
+  },
+  (table) => [
+    index("teamAnswerHistory_team_time").on(table.teamId, table.recordedAt),
+  ],
+);
+
+export const authRateLimits = pgTable(
+  "authRateLimit",
+  {
+    key: text("key").primaryKey(),
+    count: integer("count").notNull(),
+    resetAt: timestamp("resetAt").notNull(),
+  },
+  (table) => [index("authRateLimit_expiry").on(table.resetAt)],
+);

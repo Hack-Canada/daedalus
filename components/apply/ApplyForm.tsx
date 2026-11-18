@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -59,6 +59,7 @@ function focusFirstInvalid() {
 
 export function ApplyForm({
   track,
+  initialRevision,
   defaultValues,
   userEmail,
   canSave,
@@ -68,6 +69,7 @@ export function ApplyForm({
   teamOpen,
 }: {
   track: ApplyTrack;
+  initialRevision: number;
   defaultValues: THackerApplicationSubmission;
   userEmail: string;
   canSave: boolean;
@@ -77,6 +79,11 @@ export function ApplyForm({
   teamOpen: boolean;
 }) {
   const router = useRouter();
+  const revision = useRef(initialRevision);
+  const busy = useRef(false);
+  const [saving, setSaving] = useState(false);
+  const [teamUnsaved, setTeamUnsaved] = useState(false);
+  const [conflict, setConflict] = useState<string | null>(null);
   const resumeUploading = useResumeUploading();
   const title =
     TRACKS.find((item) => item.id === track)?.title ?? "Application";
@@ -126,6 +133,7 @@ export function ApplyForm({
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         ...values,
+        expectedRevision: revision.current,
         applicationType: track,
         email: userEmail,
       }),
@@ -133,63 +141,86 @@ export function ApplyForm({
     const result = (await response.json()) as {
       success: boolean;
       message: string;
+      data?: { revision: number };
     };
-    if (!result.success) throw new Error(result.message);
+    if (!result.success) {
+      if (response.status === 409) setConflict(result.message);
+      throw new Error(result.message);
+    }
+    if (result.data) revision.current = result.data.revision;
     return result.message;
   };
 
   const onSave = async () => {
-    const values = form.getValues();
-    const parsed = HackerApplicationDraftSchema.safeParse({
-      ...values,
-      applicationType: track,
-      email: userEmail,
-    });
-    if (!parsed.success) {
-      showErrors(parsed.error.issues);
-      toast.error("Fix the highlighted fields before saving.");
-      return;
-    }
-
+    if (busy.current || conflict || resumeUploading) return;
+    busy.current = true;
+    setSaving(true);
     try {
-      const message = await persist("/api/application/save", parsed.data);
-      toast.success(message);
-      form.reset(parsed.data);
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Failed to save.");
-    }
-  };
-
-  const onNext = async () => {
-    const valid = await form.trigger(SHARED_FIELDS);
-    if (!valid) {
-      focusFirstInvalid();
-      return;
-    }
-    if (canSave) {
+      const values = form.getValues();
       const parsed = HackerApplicationDraftSchema.safeParse({
-        ...form.getValues(),
+        ...values,
         applicationType: track,
         email: userEmail,
       });
       if (!parsed.success) {
         showErrors(parsed.error.issues);
-        toast.error("Fix the highlighted fields before continuing.");
+        toast.error("Fix the highlighted fields before saving.");
         return;
       }
+
       try {
-        await persist("/api/application/save", parsed.data);
+        const message = await persist("/api/application/save", parsed.data);
+        toast.success(message);
         form.reset(parsed.data);
       } catch (error) {
         toast.error(error instanceof Error ? error.message : "Failed to save.");
-        return;
       }
+    } finally {
+      busy.current = false;
+      setSaving(false);
     }
-    setStep(1);
-    window.scrollTo({ top: 0 });
   };
 
-  const onSubmit = form.handleSubmit(async (values) => {
+  const onNext = async () => {
+    if (busy.current || conflict || resumeUploading) return;
+    busy.current = true;
+    setSaving(true);
+    try {
+      const valid = await form.trigger(SHARED_FIELDS);
+      if (!valid) {
+        focusFirstInvalid();
+        return;
+      }
+      if (canSave) {
+        const parsed = HackerApplicationDraftSchema.safeParse({
+          ...form.getValues(),
+          applicationType: track,
+          email: userEmail,
+        });
+        if (!parsed.success) {
+          showErrors(parsed.error.issues);
+          toast.error("Fix the highlighted fields before continuing.");
+          return;
+        }
+        try {
+          await persist("/api/application/save", parsed.data);
+          form.reset(parsed.data);
+        } catch (error) {
+          toast.error(
+            error instanceof Error ? error.message : "Failed to save.",
+          );
+          return;
+        }
+      }
+      setStep(1);
+      window.scrollTo({ top: 0 });
+    } finally {
+      busy.current = false;
+      setSaving(false);
+    }
+  };
+
+  const submitValues = async (values: THackerApplicationSubmission) => {
     try {
       await persist("/api/application/submit", values);
       router.push("/apply?submitted=1");
@@ -197,7 +228,24 @@ export function ApplyForm({
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Failed to submit.");
     }
-  }, focusFirstInvalid);
+  };
+
+  const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (busy.current || conflict || resumeUploading) return;
+    busy.current = true;
+    setSaving(true);
+    try {
+      if (teamUnsaved) {
+        toast.error("Save your team answers before submitting.");
+        return;
+      }
+      await form.handleSubmit(submitValues, focusFirstInvalid)(event);
+    } finally {
+      busy.current = false;
+      setSaving(false);
+    }
+  };
 
   return (
     <Form {...form}>
@@ -241,6 +289,14 @@ export function ApplyForm({
           )}
         </div>
 
+        {conflict && (
+          <p
+            role="alert"
+            className="rounded-xl border border-amber-400 p-4 text-amber-100"
+          >
+            {conflict} Your unsaved text is still in this form.
+          </p>
+        )}
         <div
           key={step}
           className="animate-page-in space-y-10 motion-reduce:animate-none"
@@ -259,17 +315,29 @@ export function ApplyForm({
             <NormalQuestions control={form.control} />
           )}
           {step === 1 && sections.includes("team") && (
-            <TeamStep team={team} requests={requests} open={teamOpen} />
+            <TeamStep
+              team={team}
+              requests={requests}
+              open={teamOpen}
+              onUnsavedChange={setTeamUnsaved}
+            />
           )}
         </div>
 
+        {teamUnsaved && (
+          <p role="status" className="text-amber-100">
+            Save your team answers before submitting.
+          </p>
+        )}
         <div className="flex flex-wrap gap-3 pt-2">
           {hasSecondPage && step === 1 && (
             <Button
               type="button"
               variant="outline"
               className={actionButton}
+              disabled={saving || teamUnsaved}
               onClick={() => {
+                if (saving || teamUnsaved) return;
                 setStep(0);
                 window.scrollTo({ top: 0 });
               }}
@@ -282,7 +350,12 @@ export function ApplyForm({
               type="button"
               variant="outline"
               className={actionButton}
-              disabled={form.formState.isSubmitting || resumeUploading}
+              disabled={
+                saving ||
+                Boolean(conflict) ||
+                form.formState.isSubmitting ||
+                resumeUploading
+              }
               onClick={() => void onSave()}
             >
               Save draft
@@ -292,7 +365,7 @@ export function ApplyForm({
             <Button
               type="button"
               className={actionButton}
-              disabled={resumeUploading}
+              disabled={saving || Boolean(conflict) || resumeUploading}
               onClick={() => void onNext()}
             >
               {resumeUploading ? "Uploading resume..." : "Next"}
@@ -303,7 +376,12 @@ export function ApplyForm({
               type="submit"
               className={actionButton}
               disabled={
-                form.formState.isSubmitting || resumeUploading || !teamReady
+                saving ||
+                teamUnsaved ||
+                Boolean(conflict) ||
+                form.formState.isSubmitting ||
+                resumeUploading ||
+                !teamReady
               }
             >
               {resumeUploading

@@ -4,8 +4,10 @@ import { eq } from "drizzle-orm";
 import { ApiResponse } from "@/types/api";
 import { db } from "@/lib/db";
 import { getUserByEmail } from "@/lib/db/queries/user";
-import { passwordResetTokens } from "@/lib/db/schema";
+import { passwordResetTokens, users } from "@/lib/db/schema";
 import { sendResetPasswordEmail } from "@/lib/emails/ses";
+import { consumeRateLimit, limitAuthIp } from "@/lib/security/rate-limit";
+import { readAuthJson, RequestError } from "@/lib/security/request";
 import { ForgotPasswordSchema } from "@/lib/validations/forgot-password";
 
 const TOKEN_EXPIRATION_TIME = 1000 * 60 * 2;
@@ -14,7 +16,8 @@ export async function POST(
   req: NextRequest,
 ): Promise<NextResponse<ApiResponse>> {
   try {
-    const body = await req.json();
+    const body = await readAuthJson(req);
+    await limitAuthIp(req);
 
     const validatedFields = ForgotPasswordSchema.safeParse(body);
 
@@ -29,6 +32,7 @@ export async function POST(
     const { email: validatedEmail } = validatedFields.data;
 
     const email = validatedEmail.toLowerCase();
+    await consumeRateLimit("forgot-password", email, 5, 60 * 60);
 
     const existingUser = await getUserByEmail(email);
 
@@ -40,57 +44,54 @@ export async function POST(
       });
     }
 
-    // Check for existing token before starting transaction
-    const [existingToken] = await db
-      .select()
-      .from(passwordResetTokens)
-      .where(eq(passwordResetTokens.userId, existingUser.id));
-
-    if (existingToken) {
-      const tokenAge = new Date().getTime() - existingToken.createdAt.getTime();
-
-      if (tokenAge < TOKEN_EXPIRATION_TIME) {
-        return NextResponse.json({
-          success: false,
-          message:
-            "A password reset link was already sent recently. Please check your email.",
-        });
+    const token = await db.transaction(async (tx) => {
+      await tx
+        .select()
+        .from(users)
+        .where(eq(users.id, existingUser.id))
+        .for("no key update");
+      const existing = await tx
+        .select()
+        .from(passwordResetTokens)
+        .where(eq(passwordResetTokens.userId, existingUser.id));
+      if (
+        existing.some(
+          (row) => row.createdAt.getTime() > Date.now() - TOKEN_EXPIRATION_TIME,
+        )
+      ) {
+        throw new RequestError(
+          "A reset link was sent recently. Please check your email.",
+          429,
+        );
       }
-
-      // Delete expired token
-      await db
+      const nextToken = crypto.randomUUID();
+      await tx
         .delete(passwordResetTokens)
-        .where(eq(passwordResetTokens.id, existingToken.id));
-    }
-
-    await db.transaction(async (tx) => {
-      // Generate a UUID for the reset token
-      const token = crypto.randomUUID();
-
-      // Create a new password reset token
-      await tx.insert(passwordResetTokens).values({
-        token,
-        userId: existingUser.id,
-        createdAt: new Date(),
-      });
-
-      const emailResult = await sendResetPasswordEmail({
-        name: existingUser.name,
-        email: existingUser.email,
-        subject: "Reset your Hack Canada password",
-        token,
-      });
-
-      if (!emailResult.success) {
-        throw new Error("Failed to send reset password email");
-      }
+        .where(eq(passwordResetTokens.userId, existingUser.id));
+      await tx
+        .insert(passwordResetTokens)
+        .values({ token: nextToken, userId: existingUser.id });
+      return nextToken;
     });
+    const delivery = await sendResetPasswordEmail({
+      name: existingUser.name,
+      email: existingUser.email,
+      subject: "Reset your Hack Canada password",
+      token,
+    });
+    if (!delivery.success)
+      throw new Error("Failed to send reset password email");
 
     return NextResponse.json({
       success: true,
       message: "A password reset link has been sent to your email.",
     });
   } catch (error) {
+    if (error instanceof RequestError)
+      return NextResponse.json(
+        { success: false, message: error.message },
+        { status: error.status },
+      );
     console.error("Error during password reset request:", error);
 
     return NextResponse.json({

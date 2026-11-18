@@ -24,7 +24,7 @@ export async function middleware(req: NextRequest) {
   const session = await auth();
 
   // If the user is authenticated and trying to access an auth page, redirect to dashboard
-  if (session && authPages.includes(pathname)) {
+  if (session?.user?.id && authPages.includes(pathname)) {
     const nextPath = safeCallbackUrl(
       req.nextUrl.searchParams.get("callbackUrl"),
     );
@@ -44,7 +44,7 @@ export async function middleware(req: NextRequest) {
 
   // If the user is not authenticated and trying to access a protected route, redirect to login
   if (
-    !session &&
+    !session?.user?.id &&
     !authPages.includes(pathname) &&
     !pathname.startsWith("/reset-password/")
   ) {
@@ -58,6 +58,7 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
+  runtime: "nodejs",
   matcher: [
     "/((?!static|favicon.ico|_next|.*\\..*|api|trpc|opengraph-image).*)",
     "/",

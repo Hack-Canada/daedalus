@@ -52,6 +52,7 @@ export default async function ApplyTrackPage({ params }: Props) {
     <PageWrapper>
       <ApplyForm
         track={track}
+        initialRevision={application?.revision ?? 0}
         defaultValues={applicationToForm(application, track, user.email || "")}
         userEmail={user.email || ""}
         canSave={features.applicationSaving}

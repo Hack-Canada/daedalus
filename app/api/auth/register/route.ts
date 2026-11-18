@@ -12,12 +12,14 @@ import { getUserByEmail } from "@/lib/db/queries/user";
 import { users } from "@/lib/db/schema";
 import { sendWelcomeEmail } from "@/lib/emails/ses";
 import { getPhaseState } from "@/lib/phase";
-import { generateRandomCode } from "@/lib/utils";
+import { consumeRateLimit, limitAuthIp } from "@/lib/security/rate-limit";
+import { readAuthJson, RequestError } from "@/lib/security/request";
 import { registerSchema } from "@/lib/validations/register";
 
 export async function POST(req: Request): Promise<NextResponse<ApiResponse>> {
   try {
-    const body = await req.json();
+    const body = await readAuthJson(req);
+    await limitAuthIp(req);
 
     const validation = registerSchema.safeParse(body);
     if (!validation.success) {
@@ -30,6 +32,7 @@ export async function POST(req: Request): Promise<NextResponse<ApiResponse>> {
     const { email: validatedEmail, name, password } = validation.data;
 
     const email = validatedEmail.toLowerCase();
+    await consumeRateLimit("register", email, 5, 60 * 60);
 
     // Check if user registration is enabled based on current phase
     const { features } = await getPhaseState();
@@ -81,36 +84,22 @@ export async function POST(req: Request): Promise<NextResponse<ApiResponse>> {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    const verificationCode = generateRandomCode(6);
-    let verificationTokenId = "";
 
-    await db.transaction(async (tx) => {
-      // Create user
-      await tx.insert(users).values({
-        name,
-        email,
-        password: hashedPassword,
-      });
-
-      // Create new verification token
-      const { tokenId, code } = await createVerificationToken(email, tx);
-
-      // Send verification email
-      const emailResult = await sendWelcomeEmail({
-        name,
-        email,
-        subject: "Verify your email address for Hack Canada",
-        token: tokenId,
-        verificationCode: code,
-      });
-      // console.log("By passing send verification email, here it the OTP code:");
-      // console.log(code);
-      if (!emailResult.success) {
-        throw new Error("Failed to send verification email.");
-      }
-
-      verificationTokenId = tokenId;
+    const verification = await db.transaction(async (tx) => {
+      await tx.insert(users).values({ name, email, password: hashedPassword });
+      return createVerificationToken(email, tx);
     });
+    // Send only after the account and code exist durably. A failed send can be
+    // recovered with the existing resend flow without holding database locks.
+    const delivery = await sendWelcomeEmail({
+      name,
+      email,
+      subject: "Verify your email address for Hack Canada",
+      token: verification.tokenId,
+      verificationCode: verification.code,
+    });
+    if (!delivery.success) console.error("Verification email delivery failed");
+    const verificationTokenId = verification.tokenId;
 
     return NextResponse.json({
       success: true,
@@ -121,6 +110,11 @@ export async function POST(req: Request): Promise<NextResponse<ApiResponse>> {
       },
     });
   } catch (error) {
+    if (error instanceof RequestError)
+      return NextResponse.json(
+        { success: false, message: error.message },
+        { status: error.status },
+      );
     console.error("Error during registration:", error);
 
     return NextResponse.json({

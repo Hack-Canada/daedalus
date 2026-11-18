@@ -16,10 +16,12 @@ export function TeamStep({
   team,
   requests,
   open,
+  onUnsavedChange,
 }: {
   team: MyTeamView | null;
   requests: MyRequestView[];
   open: boolean;
+  onUnsavedChange?: (unsaved: boolean) => void;
 }) {
   if (team) {
     const ready = team.members.length >= MIN_TEAM_APPLY;
@@ -62,7 +64,11 @@ export function TeamStep({
             />
           </Link>
         </div>
-        <TeamAnswers team={team} open={open} />
+        <TeamAnswers
+          team={team}
+          open={open}
+          onUnsavedChange={onUnsavedChange}
+        />
       </div>
     );
   }

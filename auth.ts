@@ -1,6 +1,6 @@
 import { cache } from "react";
 import { DrizzleAdapter } from "@auth/drizzle-adapter";
-import NextAuth, { DefaultSession } from "next-auth";
+import NextAuth, { CredentialsSignin, DefaultSession } from "next-auth";
 
 import authConfig from "./auth.config";
 import { db } from "./lib/db";
@@ -11,8 +11,12 @@ import {
 import { getUserByEmail, getUserById } from "./lib/db/queries/user";
 import { sendWelcomeEmail } from "./lib/emails/ses";
 import { getPhaseState } from "./lib/phase";
+import { refreshSessionToken } from "./lib/security/session";
 
 declare module "next-auth" {
+  interface User {
+    sessionVersion?: number;
+  }
   interface Session {
     user: {
       role: UserRole;
@@ -58,6 +62,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       if (!existingUser || !existingUser.email) {
         return false;
       }
+
+      if (user.sessionVersion !== existingUser.sessionVersion) return false;
 
       if (!existingUser.emailVerified) {
         const [existingToken] = await getVerificationTokenByEmail(
@@ -114,23 +120,21 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
       return session;
     },
-    async jwt({ token }) {
-      if (!token.sub) {
-        return token;
-      }
-
+    async jwt({ token, user, account }) {
+      if (!token.sub) return null;
       const existingUser = await getUserById(token.sub);
-
-      if (!existingUser) return token;
-
-      token.name = existingUser.name;
-      token.email = existingUser.email;
-      token.role = existingUser.role as UserRole | "unassigned";
-      token.status = existingUser.applicationStatus as
-        | ApplicationStatus
-        | "not_applied";
-
-      return token;
+      const authenticatedVersion = user
+        ? account?.provider === "credentials"
+          ? user.sessionVersion
+          : existingUser?.sessionVersion
+        : undefined;
+      const refreshed = refreshSessionToken(
+        token,
+        existingUser,
+        authenticatedVersion,
+      );
+      if (user && !refreshed) throw new CredentialsSignin();
+      return refreshed;
     },
   },
   ...authConfig,
@@ -138,7 +142,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
 export const getCurrentUser = cache(async () => {
   const session = await auth();
-  if (!session?.user) {
+  if (!session?.user?.id) {
     return null;
   }
   return session.user;

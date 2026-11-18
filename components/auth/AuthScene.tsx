@@ -1,10 +1,11 @@
 "use client";
 
+import { useSyncExternalStore } from "react";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import signInBeachAccent from "@/public/scenes/sign-in-beach-accent.png";
 import signInBeach from "@/public/scenes/sign-in-beach.png";
-import signUpBeach from "@/public/scenes/sign-up-beach-hc27.png";
+import signUpBeach from "@/public/scenes/sign-up-beach-hc27.webp";
 import { AnimatePresence, motion } from "framer-motion";
 
 import { Cloud } from "@/components/apply/ApplyPicker";
@@ -44,9 +45,22 @@ const fade = {
   },
 };
 
+function subscribeDesktop(onChange: () => void) {
+  const query = window.matchMedia("(min-width: 1024px)");
+  query.addEventListener("change", onChange);
+  return () => query.removeEventListener("change", onChange);
+}
+const isDesktop = () => window.matchMedia("(min-width: 1024px)").matches;
+
 // Sign in and sign up use beach artwork; password recovery keeps the sky scene.
 export function AuthScene() {
   const scene = sceneFor(usePathname());
+  const desktop = useSyncExternalStore(
+    subscribeDesktop,
+    isDesktop,
+    () => false,
+  );
+  if (!desktop) return null;
 
   if (scene === "sign-in" || scene === "sign-up") {
     const signIn = scene === "sign-in";
@@ -68,7 +82,9 @@ export function AuthScene() {
             <div
               className={`absolute top-1/2 ${signIn ? "left-1/2 -translate-x-[49.5%] -translate-y-[52%]" : "left-[55%] -translate-x-1/2 -translate-y-1/2"}`}
               style={{
-                width: signIn ? "max(100cqw, 197.12cqh)" : "max(100cqw, 148.74cqh)",
+                width: signIn
+                  ? "max(100cqw, 197.12cqh)"
+                  : "max(100cqw, 148.74cqh)",
                 aspectRatio: signIn ? "4096 / 2285.83203125" : "2539 / 1707",
               }}
             >
@@ -76,7 +92,6 @@ export function AuthScene() {
                 src={signIn ? signInBeach : signUpBeach}
                 alt=""
                 fill
-                priority
                 quality={95}
                 unoptimized={!signIn}
                 sizes="(min-width: 1024px) 110vw, 100vw"

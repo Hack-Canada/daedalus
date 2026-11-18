@@ -84,10 +84,10 @@ Follow these instructions to get a local copy of Daedalus up and running.
 
     # Auth.js - Generate a secret key
     AUTH_SECRET="your-auth-secret-here"  # Generate with: openssl rand -base64 32
-    AUTH_URL="http://localhost:3000"
+    AUTH_URL="http://localhost:3001"
 
     # Application URL
-    NEXT_PUBLIC_APP_URL="http://localhost:3000"
+    NEXT_PUBLIC_APP_URL="http://localhost:3001"
 
     # Optional: Google OAuth (for social login)
     GOOGLE_CLIENT_ID="your-google-client-id"
@@ -119,7 +119,7 @@ Follow these instructions to get a local copy of Daedalus up and running.
     bun dev
     ```
 
-    Open [http://localhost:3000](http://localhost:3000) in your browser to see the application.
+    Open [http://localhost:3001](http://localhost:3001) in your browser to see the application.
 
 ### 🔧 Available Scripts
 
@@ -161,3 +161,7 @@ This project is licensed under the [GPLv3 License](LICENSE).
 ## ❤️ Created By Hack Canada
 
 Let's build unforgettable hackathon experiences together! 🚀
+
+## Application integrity repairs
+
+See [the issue 1, 5, 6, and 7 repair notes](docs/application-integrity-repairs.md) for root causes, implementation details, regression tests, and migration requirements.

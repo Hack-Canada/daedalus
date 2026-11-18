@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Lock } from "lucide-react";
 
 import {
@@ -33,32 +33,119 @@ function editedLabel(iso: string) {
 export function TeamAnswers({
   team,
   open,
+  onUnsavedChange,
 }: {
   team: MyTeamView;
   open: boolean;
+  onUnsavedChange?: (unsaved: boolean) => void;
 }) {
-  const { pending, run } = useTeamAction();
+  const { pending, message, run } = useTeamAction();
   const mine = team.members.find((member) => member.isMe);
   const savedMars = mine?.marsAnswer ?? "";
   const [mars, setMars] = useState(savedMars);
   const [essay, setEssay] = useState(team.essay);
-  const [synced, setSynced] = useState({ mars: savedMars, essay: team.essay });
+  const [marsBaseline, setMarsBaseline] = useState({
+    value: savedMars,
+    revision: mine?.marsRevision ?? 0,
+    membershipId: mine?.membershipId ?? "",
+    teamId: team.id,
+  });
+  const [essayBaseline, setEssayBaseline] = useState({
+    value: team.essay,
+    revision: team.essayRevision,
+    teamId: team.id,
+  });
 
-  if (synced.mars !== savedMars || synced.essay !== team.essay) {
-    if (synced.mars !== savedMars) setMars(savedMars);
-    if (synced.essay !== team.essay) setEssay(team.essay);
-    setSynced({ mars: savedMars, essay: team.essay });
+  // Refresh each baseline independently. An unsaved essay must not prevent a
+  // successful Mars save from advancing its revision, or vice versa.
+  if (
+    !pending &&
+    (marsBaseline.revision < (mine?.marsRevision ?? 0) ||
+      marsBaseline.membershipId !== (mine?.membershipId ?? "")) &&
+    (mars === marsBaseline.value || mars === savedMars)
+  ) {
+    setMars(savedMars);
+    setMarsBaseline({
+      value: savedMars,
+      revision: mine?.marsRevision ?? 0,
+      membershipId: mine?.membershipId ?? "",
+      teamId: team.id,
+    });
+  }
+  if (
+    !pending &&
+    (essayBaseline.revision < team.essayRevision ||
+      essayBaseline.teamId !== team.id) &&
+    (essay === essayBaseline.value || essay === team.essay)
+  ) {
+    setEssay(team.essay);
+    setEssayBaseline({
+      value: team.essay,
+      revision: team.essayRevision,
+      teamId: team.id,
+    });
   }
 
   const marsOver = wordCount(mars) > MARS_WORD_LIMIT;
   const essayOver = wordCount(essay) > ESSAY_WORD_LIMIT;
-  const marsDirty = mars !== (mine?.marsAnswer ?? "");
-  const essayDirty = essay !== team.essay;
+  const marsDirty = mars !== marsBaseline.value;
+  const essayDirty = essay !== essayBaseline.value;
+  useEffect(() => {
+    onUnsavedChange?.(marsDirty || essayDirty || pending);
+  }, [marsDirty, essayDirty, pending, onUnsavedChange]);
+  useEffect(() => () => onUnsavedChange?.(false), [onUnsavedChange]);
+  useEffect(() => {
+    const warn = (event: BeforeUnloadEvent) => {
+      if (marsDirty || essayDirty) event.preventDefault();
+    };
+    window.addEventListener("beforeunload", warn);
+    return () => window.removeEventListener("beforeunload", warn);
+  }, [marsDirty, essayDirty]);
+  const saveMars = () =>
+    run(async () => {
+      const result = await postTeam("/api/teams/mars", {
+        marsAnswer: mars,
+        revision: marsBaseline.revision,
+        membershipId: marsBaseline.membershipId,
+        teamId: marsBaseline.teamId,
+      });
+      if (result.success && result.revision !== undefined) {
+        setMars(mars.trim());
+        setMarsBaseline({
+          ...marsBaseline,
+          value: mars.trim(),
+          revision: result.revision,
+        });
+      }
+      return result;
+    });
+  const saveEssay = () =>
+    run(async () => {
+      const result = await postTeam("/api/teams/essay", {
+        essay,
+        revision: essayBaseline.revision,
+        teamId: essayBaseline.teamId,
+      });
+      if (result.success && result.revision !== undefined) {
+        setEssay(essay.trim());
+        setEssayBaseline({
+          ...essayBaseline,
+          value: essay.trim(),
+          revision: result.revision,
+        });
+      }
+      return result;
+    });
   const locked = team.answersLocked;
   const canEdit = open && !locked;
 
   return (
     <section aria-labelledby="team-answers-title" className="space-y-10">
+      {message && (
+        <p role="status" className="text-white/80">
+          {message}
+        </p>
+      )}
       <div className="space-y-4">
         <div className="space-y-1">
           <h2
@@ -146,11 +233,7 @@ export function TeamAnswers({
               variant={marsDirty ? "default" : "outline"}
               className="min-h-11 px-6"
               disabled={pending || marsOver || !marsDirty}
-              onClick={() =>
-                void run(() =>
-                  postTeam("/api/teams/mars", { marsAnswer: mars }),
-                )
-              }
+              onClick={() => void saveMars()}
             >
               {marsDirty || !mine?.marsAnswer ? "Save" : "Saved"}
             </Button>
@@ -190,9 +273,7 @@ export function TeamAnswers({
               variant={essayDirty ? "default" : "outline"}
               className="min-h-11 px-6"
               disabled={pending || essayOver || !essayDirty}
-              onClick={() =>
-                void run(() => postTeam("/api/teams/essay", { essay }))
-              }
+              onClick={() => void saveEssay()}
             >
               {essayDirty || !team.essay ? "Save" : "Saved"}
             </Button>

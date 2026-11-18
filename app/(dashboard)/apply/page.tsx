@@ -80,6 +80,7 @@ export default async function ApplyPage({
     <ApplyPicker
       currentTrack={track && isApplyTrack(track) ? track : null}
       hasDraft={Boolean(application)}
+      revision={application?.revision ?? 0}
     />
   );
 }

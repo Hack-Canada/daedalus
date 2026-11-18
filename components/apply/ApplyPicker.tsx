@@ -4,25 +4,22 @@ import { useState, type CSSProperties, type PointerEvent } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import businessBeaver from "@/public/beaver-business.png";
+import ideaBeaver from "@/public/beaver-idea.png";
+import laptopBeaver from "@/public/beaver-laptop.png";
+import moneyBeaver from "@/public/beaver-money.png";
+import pencilBeaver from "@/public/beaver-pencil.png";
+import starBeaver from "@/public/beaver-star.png";
 import { toast } from "sonner";
 
 import { ApplyTrack, TRACKS } from "@/config/apply";
-import starBeaver from "@/public/beaver-star.png";
-import laptopBeaver from "@/public/beaver-laptop.png";
-import moneyBeaver from "@/public/beaver-money.png";
-import businessBeaver from "@/public/beaver-business.png";
-import pencilBeaver from "@/public/beaver-pencil.png";
-import ideaBeaver from "@/public/beaver-idea.png";
 
 import { ApplyMark } from "./ApplyMark";
 
 type Track = (typeof TRACKS)[number];
 
 // Quick matches the application form; Normal and Team keep their blue themes.
-const THEMES: Record<
-  ApplyTrack,
-  { panel: string; muted: string }
-> = {
+const THEMES: Record<ApplyTrack, { panel: string; muted: string }> = {
   quick: {
     panel: "bg-[#0a0a0f] text-white",
     muted: "text-white",
@@ -77,9 +74,11 @@ const parallax = (depth: number): CSSProperties => ({
 export function ApplyPicker({
   currentTrack,
   hasDraft,
+  revision,
 }: {
   currentTrack: ApplyTrack | null;
   hasDraft: boolean;
+  revision: number;
 }) {
   const router = useRouter();
   const [pending, setPending] = useState(false);
@@ -99,7 +98,10 @@ export function ApplyPicker({
         const response = await fetch("/api/application/track", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ applicationType: track }),
+          body: JSON.stringify({
+            applicationType: track,
+            expectedRevision: revision,
+          }),
         });
         const result = (await response.json()) as {
           success: boolean;
@@ -121,7 +123,7 @@ export function ApplyPicker({
   }
 
   return (
-    <div className="group/picker h-dvh snap-y snap-mandatory overflow-y-auto bg-[#031b31] lg:grid lg:grid-cols-3 lg:grid-rows-[minmax(0,1fr)_auto_auto_auto] lg:snap-none lg:overflow-hidden">
+    <div className="group/picker h-dvh snap-y snap-mandatory overflow-y-auto bg-[#031b31] lg:grid lg:snap-none lg:grid-cols-3 lg:grid-rows-[minmax(0,1fr)_auto_auto_auto] lg:overflow-hidden">
       <ApplyMark />
       {TRACKS.map((track, index) => {
         const theme = THEMES[track.id];

@@ -38,6 +38,7 @@ const ForgotPasswordForm = ({}: Props) => {
       startTransition(async () => {
         const res = await fetcher("/api/auth/forgot-password", {
           method: "POST",
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             email: values.email,
           }),
@@ -60,10 +61,13 @@ const ForgotPasswordForm = ({}: Props) => {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-5">
+      <form
+        onSubmit={form.handleSubmit(onSubmit)}
+        className="flex flex-col gap-5"
+      >
         {error && (
-          <div className="rounded-md border border-error/50 bg-error/10 p-2">
-            <p className="text-sm text-error">{error}</p>
+          <div className="border-error/50 bg-error/10 rounded-md border p-2">
+            <p className="text-error text-sm">{error}</p>
           </div>
         )}
 
@@ -72,7 +76,9 @@ const ForgotPasswordForm = ({}: Props) => {
           name="email"
           render={({ field }) => (
             <FormItem className="space-y-2">
-              <FormLabel className="text-white/90 font-medium">Email Address</FormLabel>
+              <FormLabel className="font-medium text-white/90">
+                Email Address
+              </FormLabel>
               <FormControl>
                 <Input
                   {...field}

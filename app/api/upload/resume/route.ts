@@ -2,10 +2,7 @@ import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/auth";
 
 import { ApiResponse } from "@/types/api";
-import {
-  deletePendingResume,
-  putPendingResume,
-} from "@/lib/storage/resume";
+import { putPendingResume } from "@/lib/storage/resume";
 import { ownsResumeKey } from "@/lib/storage/resume-key";
 
 export async function POST(request: Request) {
@@ -19,11 +16,14 @@ export async function POST(request: Request) {
 
   const formData = await request.formData();
   const file = formData.get("file") as File | null;
-  const replaceKey = formData.get("replaceKey");
 
   if (!file) {
     return NextResponse.json<ApiResponse>(
-      { success: false, message: "Validation error", error: "No file provided" },
+      {
+        success: false,
+        message: "Validation error",
+        error: "No file provided",
+      },
       { status: 400 },
     );
   }
@@ -54,11 +54,8 @@ export async function POST(request: Request) {
     const buffer = Buffer.from(await file.arrayBuffer());
     const key = await putPendingResume(currentUser.id, buffer);
 
-    if (typeof replaceKey === "string" && replaceKey && replaceKey !== key) {
-      if (ownsResumeKey(currentUser.id, replaceKey) && replaceKey.startsWith("pending/")) {
-        await deletePendingResume(currentUser.id, replaceKey);
-      }
-    }
+    // The saved application can still reference the previous object. Retain it
+    // until a separate reference-aware cleanup proves it is unreferenced.
 
     return NextResponse.json<ApiResponse<{ key: string }>>({
       success: true,
@@ -101,10 +98,18 @@ export async function DELETE(request: Request) {
   }
 
   try {
-    await deletePendingResume(currentUser.id, key);
+    if (!ownsResumeKey(currentUser.id, key)) {
+      return NextResponse.json<ApiResponse>(
+        { success: false, message: "Invalid resume" },
+        { status: 403 },
+      );
+    }
+    // Removing a form attachment does not change the durable draft reference.
+    // Keep the object until the application is saved and cleanup can reconcile it.
     return NextResponse.json<ApiResponse>({
       success: true,
-      message: "File deleted successfully",
+      message:
+        "Save your application to remove this resume from your saved draft.",
     });
   } catch (error) {
     console.error("Error deleting file:", error);

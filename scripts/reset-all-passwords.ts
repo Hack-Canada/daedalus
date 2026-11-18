@@ -1,4 +1,5 @@
 #!/usr/bin/env bun
+import * as readline from "readline";
 /**
  * Script to reset ALL user passwords to a common password for testing purposes.
  *
@@ -10,12 +11,13 @@
  */
 
 import { loadEnvConfig } from "@next/env";
-loadEnvConfig(process.cwd());
-
 import bcrypt from "bcryptjs";
-import * as readline from "readline";
+import { sql } from "drizzle-orm";
+
 import { db } from "../lib/db";
 import { users } from "../lib/db/schema";
+
+loadEnvConfig(process.cwd());
 
 const NEW_PASSWORD = "Hello123@.";
 
@@ -85,7 +87,9 @@ async function main() {
   }
 
   // Fetch all users
-  const allUsers = await db.select({ id: users.id, email: users.email }).from(users);
+  const allUsers = await db
+    .select({ id: users.id, email: users.email })
+    .from(users);
 
   console.log(`Found ${allUsers.length} users in the database.\n`);
 
@@ -108,7 +112,7 @@ async function main() {
 
   // Interactive confirmation
   const confirmed = await promptConfirmation(
-    `⚠️  Are you sure you want to reset ALL ${allUsers.length} user passwords in this database?\n   Type "yes" to confirm: `
+    `⚠️  Are you sure you want to reset ALL ${allUsers.length} user passwords in this database?\n   Type "yes" to confirm: `,
   );
 
   if (!confirmed) {
@@ -124,11 +128,16 @@ async function main() {
   // Update all users
   const result = await db
     .update(users)
-    .set({ password: hashedPassword })
+    .set({
+      password: hashedPassword,
+      sessionVersion: sql`${users.sessionVersion} + 1`,
+    })
     .returning({ id: users.id, email: users.email });
 
   console.log(`✅ Successfully updated ${result.length} user passwords.\n`);
-  console.log(`All accounts can now be accessed with password: ${NEW_PASSWORD}`);
+  console.log(
+    `All accounts can now be accessed with password: ${NEW_PASSWORD}`,
+  );
 }
 
 main().catch((error) => {

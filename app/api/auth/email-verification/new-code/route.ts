@@ -4,11 +4,12 @@ import { ApiResponse } from "@/types/api";
 import {
   createVerificationToken,
   deleteExpiredTokens,
-  deleteVerificationTokenById,
   getVerificationTokenByEmail,
 } from "@/lib/db/queries/email-verification-tokens";
 import { getUserByEmail } from "@/lib/db/queries/user";
 import { sendWelcomeEmail } from "@/lib/emails/ses";
+import { consumeRateLimit, limitAuthIp } from "@/lib/security/rate-limit";
+import { readAuthJson, RequestError } from "@/lib/security/request";
 import { EmailValidationSchema } from "@/lib/validations/email-verification";
 
 type ResponseData = {
@@ -19,7 +20,8 @@ export async function POST(
   req: Request,
 ): Promise<NextResponse<ApiResponse<ResponseData>>> {
   try {
-    const body = await req.json();
+    const body = await readAuthJson(req);
+    await limitAuthIp(req);
 
     const validatedFields = EmailValidationSchema.safeParse(body);
 
@@ -32,6 +34,7 @@ export async function POST(
 
     const { email: validatedEmail } = validatedFields.data;
     const email = validatedEmail.toLowerCase();
+    await consumeRateLimit("email-verification-new-code", email, 5, 60 * 60);
 
     const existingUser = await getUserByEmail(email);
     if (!existingUser || !existingUser.email || existingUser.emailVerified) {
@@ -63,11 +66,6 @@ export async function POST(
       });
     }
 
-    // Delete any remaining tokens for this email
-    await Promise.all(
-      existingTokens.map((token) => deleteVerificationTokenById(token.id)),
-    );
-
     // Create new verification token
     const { code, tokenId } = await createVerificationToken(email);
 
@@ -93,6 +91,11 @@ export async function POST(
       data: { tokenId },
     });
   } catch (error) {
+    if (error instanceof RequestError)
+      return NextResponse.json(
+        { success: false, message: error.message },
+        { status: error.status },
+      );
     console.error("Error generating new verification code", error);
     return NextResponse.json({
       success: false,

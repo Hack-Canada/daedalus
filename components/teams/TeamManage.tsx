@@ -399,7 +399,9 @@ export function TeamManage({
                   <span className="text-sm text-white">
                     List on Browse teams
                     <span className="block text-white/45">
-                      Off means only people with the link can find you.
+                      {isPublic
+                        ? "On. Anyone browsing can open this team."
+                        : "Off means only people with the link can find you."}
                     </span>
                   </span>
                   <Switch
@@ -409,6 +411,13 @@ export function TeamManage({
                     onCheckedChange={setIsPublic}
                   />
                 </label>
+                {isPublic && (
+                  <p className="rounded-xl bg-white/[0.04] px-3 py-2 text-sm text-white/75">
+                    Anyone who opens this team will see each member&apos;s first
+                    name, LinkedIn, GitHub, and portfolio, including yours, and
+                    can message you from those links.
+                  </p>
+                )}
                 <Button
                   type="submit"
                   className="min-h-11 w-full"

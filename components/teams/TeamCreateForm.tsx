@@ -16,7 +16,7 @@ const VISIBILITY = [
   {
     value: true,
     label: "Public",
-    hint: "Anyone can find it on Browse teams.",
+    hint: "Anyone can find it on Browse teams and open it to message members.",
   },
   {
     value: false,
@@ -118,6 +118,13 @@ export function TeamCreateForm({ open }: { open: boolean }) {
           <p className="mt-2 text-sm text-white/45">
             {VISIBILITY.find((option) => option.value === isPublic)?.hint}
           </p>
+          {isPublic && (
+            <p className="mt-3 rounded-xl bg-white/[0.04] px-4 py-3 text-sm text-white/75">
+              A public team shows each member&apos;s first name, LinkedIn,
+              GitHub, and portfolio to anyone who opens it. People can message
+              you from those links before they ask to join.
+            </p>
+          )}
         </fieldset>
 
         <Button
@@ -153,7 +160,9 @@ export function TeamCreateForm({ open }: { open: boolean }) {
           <p className="mt-4 text-sm text-white/45">With you</p>
         </div>
         {!isPublic && (
-          <p className="mt-3 text-sm text-white/45">Hidden from Browse teams.</p>
+          <p className="mt-3 text-sm text-white/45">
+            Hidden from Browse teams.
+          </p>
         )}
       </aside>
     </form>

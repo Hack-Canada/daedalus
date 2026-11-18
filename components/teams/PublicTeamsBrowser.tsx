@@ -128,6 +128,12 @@ export function PublicTeamsBrowser({
                 <p className="mt-2 truncate text-sm text-white/45">
                   With {team.memberFirstNames.join(", ")}
                 </p>
+                <Link
+                  href={`/apply/teams/browse/${team.id}`}
+                  className="mt-2 inline-flex min-h-11 items-center text-sm text-[#85B7F1] underline-offset-4 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-white"
+                >
+                  View members and contact links
+                </Link>
               </div>
               <div className="md:pt-1">
                 <JoinRequestButton

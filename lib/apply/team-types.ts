@@ -15,6 +15,14 @@ export type ApplicantShare = {
   profile: SharedProfile;
 };
 
+export type PublicContact = {
+  firstName: string;
+  isOwner: boolean;
+  linkedin: string;
+  github: string;
+  personalWebsite: string;
+};
+
 export type PublicTeamCard = {
   id: string;
   name: string;
@@ -34,6 +42,20 @@ export type InvitePreview = {
   memberCount: number;
   spotsLeft: number;
   memberFirstNames: string[];
+  contacts: PublicContact[] | null;
+  mine: boolean;
+  requestStatus: "pending" | null;
+  requestId: string | null;
+  cooldownUntil: string | null;
+};
+
+export type PublicTeamDetail = {
+  id: string;
+  name: string;
+  lookingFor: string;
+  memberCount: number;
+  spotsLeft: number;
+  contacts: PublicContact[];
   mine: boolean;
   requestStatus: "pending" | null;
   requestId: string | null;

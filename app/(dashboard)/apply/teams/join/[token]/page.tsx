@@ -16,6 +16,7 @@ import {
 } from "@/lib/db/queries/team";
 import { Button } from "@/components/ui/button";
 import { JoinRequestButton } from "@/components/teams/JoinRequestButton";
+import { MemberContacts } from "@/components/teams/MemberContacts";
 import { SpotsMeter } from "@/components/teams/SpotsMeter";
 import { TeamPage } from "@/components/teams/TeamPage";
 
@@ -139,19 +140,23 @@ export default async function JoinTeamPage({ params, searchParams }: Props) {
             "They have not written what they are looking for yet."
           }
         />
-        <div>
-          <p className="text-sm text-white/45">On the team</p>
-          <ul className="mt-2 flex flex-wrap gap-2" aria-label="Members">
-            {team.memberFirstNames.map((name, index) => (
-              <li
-                key={`${name}-${index}`}
-                className="rounded-full bg-white/10 px-3 py-1 text-sm text-white"
-              >
-                {name}
-              </li>
-            ))}
-          </ul>
-        </div>
+        {team.contacts ? (
+          <MemberContacts members={team.contacts} />
+        ) : (
+          <div>
+            <p className="text-sm text-white/45">On the team</p>
+            <ul className="mt-2 flex flex-wrap gap-2" aria-label="Members">
+              {team.memberFirstNames.map((name, index) => (
+                <li
+                  key={`${name}-${index}`}
+                  className="rounded-full bg-white/10 px-3 py-1 text-sm text-white"
+                >
+                  {name}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
         <JoinRequestButton
           teamName={team.name}
           share={share}
